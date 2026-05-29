@@ -1,13 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 
-import { verifyToken } from "../utils/jwt";
+import {
+  verifyToken,
+  JwtPayload,
+} from "../utils/jwt";
 
 export interface AuthRequest extends Request {
-  user?: {
-    userId: string;
-    iat: number;
-    exp: number;
-  };
+  user?: JwtPayload;
 }
 
 export const protect = (

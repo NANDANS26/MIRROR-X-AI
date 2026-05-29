@@ -52,8 +52,7 @@ def compute_scores(
             )
         )
 
-        score =
-            base_weight * multiplier
+        score = base_weight * multiplier
 
         manipulation_score += score
 
@@ -82,30 +81,23 @@ def compute_scores(
         manipulation_score < 40
         and trust_score > 60
     ):
-        fairness =
-            "Fair"
+        fairness = "Fair"
 
     elif (
         manipulation_score > 70
         or trust_score < 30
     ):
-        fairness =
-            "High Risk"
+        fairness = "High Risk"
 
     else:
-        fairness =
-            "Moderate Risk"
+        fairness = "Moderate Risk"
 
     return {
-        "manipulation_score":
-            manipulation_score,
+        "manipulation_score": manipulation_score,
 
-        "trust_score":
-            trust_score,
+        "trust_score": trust_score,
 
-        "friction_score":
-            friction_score,
+        "friction_score": friction_score,
 
-        "ux_fairness_index":
-            fairness,
+        "ux_fairness_index": fairness,
     }

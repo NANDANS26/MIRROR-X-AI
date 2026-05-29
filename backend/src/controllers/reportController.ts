@@ -23,7 +23,7 @@ export const createAnalysisReport =
     ) => {
       const session =
         await getSession(
-          req.params.id
+          req.params.id as string
         );
 
       if (!session) {

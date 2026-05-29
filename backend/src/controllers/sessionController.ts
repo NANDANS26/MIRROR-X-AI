@@ -17,10 +17,13 @@ export const fetchSession =
       req: AuthRequest,
       res: Response
     ) => {
+      const sessionId =
+        Array.isArray(req.params.id)
+          ? req.params.id[0]
+          : req.params.id;
+
       const session =
-        await getSession(
-          req.params.id
-        );
+        await getSession(sessionId);
 
       if (!session) {
         return res.status(404).json({
