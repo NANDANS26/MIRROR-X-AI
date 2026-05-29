@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String            @id @default(uuid())
+  email               String            @unique
+  passwordHash        String
+  createdAt           DateTime          @default(now())
+  failedLoginAttempts Int               @default(0)
+  lockoutUntil        DateTime?
+
+  sessions            AnalysisSession[]
+  chatMessages        ChatMessage[]
+}
+
+model AnalysisSession {
+  id                    String                    @id @default(uuid())
+  userId                String
+
+  user                  User                      @relation(fields: [userId], references: [id])
+
+  createdAt             DateTime                  @default(now())
+  expiresAt             DateTime
+
+  sourceType            String
+  sourceUrl             String?
+  sourceFilename        String?
+
+  screenshotPath        String
+
+  pageTitle             String?
+  metaDescription       String?
+
+  status                String
+  failedStage           String?
+
+  ocrResultJson         Json?
+  ruleFlagsJson         Json?
+  detectedPatternsJson  Json?
+  simulationResultsJson Json?
+  scoresJson            Json?
+
+  reportPath            String?
+  reportExpiresAt       DateTime?
+
+  chatMessages          ChatMessage[]
+  detectedPatterns      DetectedPatternRecord[]
+  simulationResults     SimulationResultRecord[]
+
+  scoringResult         ScoringResult?
+}
+
+model DetectedPatternRecord {
+  id                String              @id @default(uuid())
+
+  sessionId         String
+  session           AnalysisSession     @relation(fields: [sessionId], references: [id])
+
+  category          String
+  elementIdentifier String
+  confidenceLevel   String
+  explanation       String
+
+  boundingBoxJson   Json?
+}
+
+model SimulationResultRecord {
+  id                String              @id @default(uuid())
+
+  sessionId         String
+  session           AnalysisSession     @relation(fields: [sessionId], references: [id])
+
+  persona           String
+  findingsJson      Json
+
+  behavioralSummary String
+}
+
+model ScoringResult {
+  id                  String              @id @default(uuid())
+
+  sessionId           String              @unique
+  session             AnalysisSession     @relation(fields: [sessionId], references: [id])
+
+  manipulationScore   Float
+  trustScore          Float
+  frictionScore       Float
+
+  uxFairnessIndex     String
+
+  breakdownJson       Json
+}
+
+model ChatMessage {
+  id          String              @id @default(uuid())
+
+  sessionId   String
+  session     AnalysisSession     @relation(fields: [sessionId], references: [id])
+
+  userId      String
+  user        User                @relation(fields: [userId], references: [id])
+
+  role        String
+  content     String
+
+  timestamp   DateTime            @default(now())
+}
+
+model Report {
+  id          String      @id @default(uuid())
+
+  sessionId   String      @unique
+
+  filePath    String
+
+  generatedAt DateTime    @default(now())
+  expiresAt   DateTime
+}

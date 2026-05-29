@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+venv/
+
+# env
+.env
+
+# build
+dist/
+build/
+
+# uploads
+uploads/
+
+# python
+__pycache__/
+*.pyc
+
+# logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# prisma
+backend/prisma/dev.db
+
+# coverage
+coverage/
+htmlcov/
