@@ -1,9 +1,16 @@
-import { useState } from "react";
-import { generateMockResponse } from "../../services/mockAI";
+import {
+  useRef,
+  useState,
+} from "react";
+
+import { Send } from "lucide-react";
+import { Paperclip } from "lucide-react";
 import { useChatStore } from "../../store/chatStore";
 
 export default function ChatInput() {
-  const [value, setValue] =
+    const [selectedFile, setSelectedFile] =
+      useState<File | null>(null);
+  const [message, setMessage] =
     useState("");
 
   const addMessage =
@@ -11,58 +18,153 @@ export default function ChatInput() {
       (state) => state.addMessage
     );
 
-  const sendMessage = () => {
-    if (!value.trim()) return;
+  const setTyping =
+    useChatStore(
+      (state) => state.setTyping
+    );
+
+  const fileInputRef =
+      useRef<HTMLInputElement>(null);
+
+  const sendMessage =
+  async () => {
+    if (!message.trim()) return;
+
+    const userMessage = message;
+    let preview = "";
+
+    if (selectedFile) {
+    preview =
+        URL.createObjectURL(
+        selectedFile
+        );
+    }
 
     addMessage({
-      id: crypto.randomUUID(),
+    id: crypto.randomUUID(),
 
-      role: "user",
+    role: "user",
 
-      type: "text",
+    content:
+        userMessage ||
+        "Uploaded screenshot",
 
-      content: value,
-
-      timestamp:
+    timestamp:
         new Date().toISOString(),
+
+    file: selectedFile
+        ? {
+            name:
+            selectedFile.name,
+
+            preview,
+        }
+        : undefined,
     });
 
-    setValue("");
+    setMessage("");
+
+    setTyping(true);
+
+    const steps = [
+      "Scanning interface structure...",
+      "Detecting urgency indicators...",
+      "Evaluating interaction pressure...",
+      "Cross-referencing manipulation patterns...",
+      "Generating forensic explanation...",
+    ];
+
+    let delay = 1000;
+
+    for (const step of steps) {
+      setTimeout(() => {
+        addMessage({
+          id:
+            crypto.randomUUID(),
+
+          role:
+            "assistant",
+
+          content: step,
+
+          timestamp:
+            new Date()
+              .toISOString(),
+
+          type: "status",
+        });
+      }, delay);
+
+      delay += 1200;
+    }
+
+    setTimeout(() => {
+      addMessage({
+        id: crypto.randomUUID(),
+
+        role: "assistant",
+
+        content:
+          "Investigation complete.\n\nI detected several potential manipulation signals. Backend intelligence integration will replace this simulation shortly.",
+
+        timestamp:
+          new Date().toISOString(),
+      });
+
+      setTyping(false);
+    }, delay);
   };
 
   return (
-    <div className="border-t border-slate-800 p-6">
-      <div className="max-w-5xl mx-auto flex gap-4">
-        <input
-          value={value}
-          onChange={(e) =>
-            setValue(e.target.value)
-          }
-          placeholder="Ask MIRROR X AI anything..."
-          className="
-            flex-1
-            bg-slate-900
-            border
-            border-slate-800
-            rounded-xl
-            px-4
-            py-4
-            text-white
-            outline-none
-          "
-        />
+    <div className="border-t border-white/10 p-5">
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-[#111827] rounded-2xl flex items-center px-4 py-3">
+            <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => {
+                const file =
+                e.target.files?.[0];
 
-        <button
-          onClick={sendMessage}
-          className="
-            px-6
-            rounded-xl
-            bg-blue-600
-            hover:bg-blue-500
-          "
-        >
-          Send
-        </button>
+                if (!file) return;
+
+                setSelectedFile(file);
+            }}
+            />
+            <button
+            onClick={() =>
+                fileInputRef.current?.click()
+            }
+            >
+            <Paperclip size={18} />
+            </button>
+          <input
+            value={message}
+            onChange={(e) =>
+              setMessage(
+                e.target.value
+              )
+            }
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter"
+              ) {
+                sendMessage();
+              }
+            }}
+            placeholder="Ask MIRROR X AI anything..."
+            className="flex-1 bg-transparent outline-none text-white"
+          />
+
+          <button
+            onClick={sendMessage}
+            className="ml-4"
+          >
+            <Send size={18} />
+          </button>
+        </div>
       </div>
     </div>
   );

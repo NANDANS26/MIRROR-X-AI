@@ -1,87 +1,56 @@
 import { create } from "zustand";
 
-import type {
-    ChatMessage,
-    ChatSession,
-} from "../types/chat";
+import type { ChatMessage } from "../types/chat";
 
 interface ChatStore {
-  sessions: ChatSession[];
+  messages: ChatMessage[];
 
-  activeSessionId: string | null;
-
-  createSession: () => void;
-
-  setActiveSession: (
-    id: string
-  ) => void;
+  isTyping: boolean;
 
   addMessage: (
     message: ChatMessage
   ) => void;
-  
+
+  setTyping: (
+    value: boolean
+  ) => void;
+
+  clearChat: () => void;
 }
 
 export const useChatStore =
   create<ChatStore>((set) => ({
-    sessions: [],
+    messages: [
+      {
+        id: "welcome",
 
-    activeSessionId: null,
+        role: "assistant",
 
-    createSession: () =>
-      set((state) => {
-        const session: ChatSession = {
-          id: crypto.randomUUID(),
+        content:
+          "Hello. I'm MIRROR X AI.\n\nUpload a screenshot or share a URL and I'll investigate potential manipulation patterns, explain my reasoning, and guide you through the findings.",
 
-          title: "New Investigation",
+        timestamp:
+          new Date().toISOString(),
+      },
+    ],
 
-          createdAt:
-            new Date().toISOString(),
+    isTyping: false,
 
-          messages: [],
-        };
-
-        return {
-          sessions: [
-            session,
-            ...state.sessions,
-          ],
-
-          activeSessionId:
-            session.id,
-        };
-      }),
-
-    setActiveSession: (
-      id: string
-    ) =>
-      set({
-        activeSessionId: id,
-      }),
-
-    addMessage: (
-      message: ChatMessage
-    ) =>
+    addMessage: (message) =>
       set((state) => ({
-        sessions:
-          state.sessions.map(
-            (session) => {
-              if (
-                session.id !==
-                state.activeSessionId
-              ) {
-                return session;
-              }
-
-              return {
-                ...session,
-
-                messages: [
-                  ...session.messages,
-                  message,
-                ],
-              };
-            }
-          ),
+        messages: [
+          ...state.messages,
+          message,
+        ],
       })),
+
+    setTyping: (value) =>
+      set({
+        isTyping: value,
+      }),
+
+    clearChat: () =>
+      set({
+        messages: [],
+      }),
   }));

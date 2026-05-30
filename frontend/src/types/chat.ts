@@ -1,33 +1,23 @@
-export type MessageRole =
-  | "user"
-  | "assistant"
-  | "system";
+export interface UploadedFile {
+  name: string;
 
-export type MessageType =
-  | "text"
-  | "investigation"
-  | "evidence"
-  | "score"
-  | "report";
+  preview: string;
+}
 
 export interface ChatMessage {
   id: string;
 
-  role: MessageRole;
-
-  type: MessageType;
+  role: "user" | "assistant";
 
   content: string;
 
   timestamp: string;
-}
 
-export interface ChatSession {
-  id: string;
+  file?: UploadedFile;
 
-  title: string;
-
-  createdAt: string;
-
-  messages: ChatMessage[];
+  type?:
+    | "message"
+    | "status"
+    | "evidence"
+    | "analysis";
 }

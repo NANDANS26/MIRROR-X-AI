@@ -1,38 +1,50 @@
-import type { ChatMessage as Message } from "../../types/chat";
+import ReactMarkdown from "react-markdown";
+import FileMessage from "./FileMessage";
+import type { ChatMessage as Msg } from "../../types/chat";
 
 interface Props {
-  message: Message;
+  message: Msg;
 }
 
 export default function ChatMessage({
   message,
 }: Props) {
+    if (
+        message.type === "status"
+    ) {
+    return (
+        <div className="text-sm text-purple-300 pl-4">
+        {message.content}
+        </div>
+    );
+    }
   const isUser =
     message.role === "user";
 
   return (
     <div
-      className={`flex mb-6 ${
+      className={`w-full flex ${
         isUser
           ? "justify-end"
           : "justify-start"
       }`}
     >
       <div
-        className={`
-        max-w-3xl
-        px-5
-        py-4
-        rounded-2xl
-        whitespace-pre-wrap
-        ${
+        className={`max-w-3xl rounded-2xl px-5 py-4 ${
           isUser
-            ? "bg-blue-600"
-            : "bg-slate-900"
-        }
-      `}
+            ? "bg-purple-600"
+            : "bg-[#111827]"
+        }`}
       >
-        {message.content}
+        <ReactMarkdown>
+          {message.content}
+        </ReactMarkdown>
+        {message.file && (
+        <FileMessage
+            name={message.file.name}
+            preview={message.file.preview}
+        />
+        )}
       </div>
     </div>
   );

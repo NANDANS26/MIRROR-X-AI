@@ -1,13 +1,22 @@
+import { motion } from "framer-motion";
+
 export default function TypingIndicator() {
   return (
-    <div className="flex justify-start mb-6">
-      <div className="bg-slate-900 px-5 py-4 rounded-2xl">
-        <div className="flex gap-2">
-          <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" />
-          <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce delay-100" />
-          <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce delay-200" />
-        </div>
-      </div>
+    <div className="flex gap-2 px-4 py-3">
+      {[0, 1, 2].map((dot) => (
+        <motion.div
+          key={dot}
+          className="w-2 h-2 rounded-full bg-purple-400"
+          animate={{
+            y: [0, -6, 0],
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 0.8,
+            delay: dot * 0.15,
+          }}
+        />
+      ))}
     </div>
   );
 }
