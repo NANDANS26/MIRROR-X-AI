@@ -3,15 +3,22 @@ import {
   useState,
 } from "react";
 
-import { Send } from "lucide-react";
-import { Paperclip } from "lucide-react";
+import {
+  Paperclip,
+  Send,
+} from "lucide-react";
+
 import { useChatStore } from "../../store/chatStore";
 
 export default function ChatInput() {
-    const [selectedFile, setSelectedFile] =
-      useState<File | null>(null);
   const [message, setMessage] =
     useState("");
+
+  const [selectedFile, setSelectedFile] =
+    useState<File | null>(null);
+
+  const fileInputRef =
+    useRef<HTMLInputElement>(null);
 
   const addMessage =
     useChatStore(
@@ -23,60 +30,88 @@ export default function ChatInput() {
       (state) => state.setTyping
     );
 
-  const fileInputRef =
-      useRef<HTMLInputElement>(null);
-
   const sendMessage =
-  async () => {
-    if (!message.trim()) return;
+    async () => {
+      if (
+        !message.trim() &&
+        !selectedFile
+      )
+        return;
 
-    const userMessage = message;
-    let preview = "";
+      const userMessage =
+        message.trim();
 
-    if (selectedFile) {
-    preview =
-        URL.createObjectURL(
-        selectedFile
-        );
-    }
+      let preview = "";
 
-    addMessage({
-    id: crypto.randomUUID(),
+      if (selectedFile) {
+        preview =
+          URL.createObjectURL(
+            selectedFile
+          );
+      }
 
-    role: "user",
+      addMessage({
+        id: crypto.randomUUID(),
 
-    content:
-        userMessage ||
-        "Uploaded screenshot",
+        role: "user",
 
-    timestamp:
-        new Date().toISOString(),
+        type: "message",
 
-    file: selectedFile
-        ? {
-            name:
-            selectedFile.name,
+        content:
+          userMessage ||
+          "Uploaded screenshot",
 
-            preview,
-        }
-        : undefined,
-    });
+        timestamp:
+          new Date().toISOString(),
 
-    setMessage("");
+        file: selectedFile
+          ? {
+              name:
+                selectedFile.name,
 
-    setTyping(true);
+              preview,
+            }
+          : undefined,
+      });
 
-    const steps = [
-      "Scanning interface structure...",
-      "Detecting urgency indicators...",
-      "Evaluating interaction pressure...",
-      "Cross-referencing manipulation patterns...",
-      "Generating forensic explanation...",
-    ];
+      setMessage("");
 
-    let delay = 1000;
+      setTyping(true);
 
-    for (const step of steps) {
+      const steps = [
+        "Scanning interface structure...",
+        "Detecting urgency indicators...",
+        "Evaluating interaction pressure...",
+        "Cross-referencing manipulation patterns...",
+        "Generating forensic explanation...",
+      ];
+
+      let delay = 1000;
+
+      for (const step of steps) {
+        setTimeout(() => {
+          addMessage({
+            id:
+              crypto.randomUUID(),
+
+            role:
+              "assistant",
+
+            type:
+              "status",
+
+            content:
+              step,
+
+            timestamp:
+              new Date()
+                .toISOString(),
+          });
+        }, delay);
+
+        delay += 1200;
+      }
+
       setTimeout(() => {
         addMessage({
           id:
@@ -85,61 +120,50 @@ export default function ChatInput() {
           role:
             "assistant",
 
-          content: step,
+          type:
+            "message",
+
+          content:
+            "Investigation complete.\n\nI detected several potential manipulation signals. Real backend analysis integration will replace this simulation in the next step.",
 
           timestamp:
             new Date()
               .toISOString(),
-
-          type: "status",
         });
+
+        setTyping(false);
+
+        setSelectedFile(null);
       }, delay);
-
-      delay += 1200;
-    }
-
-    setTimeout(() => {
-      addMessage({
-        id: crypto.randomUUID(),
-
-        role: "assistant",
-
-        content:
-          "Investigation complete.\n\nI detected several potential manipulation signals. Backend intelligence integration will replace this simulation shortly.",
-
-        timestamp:
-          new Date().toISOString(),
-      });
-
-      setTyping(false);
-    }, delay);
-  };
+    };
 
   return (
     <div className="border-t border-white/10 p-5">
       <div className="max-w-5xl mx-auto">
-        <div className="bg-[#111827] rounded-2xl flex items-center px-4 py-3">
-            <input
+        <div className="bg-[#111827] rounded-2xl flex items-center gap-3 px-4 py-3">
+          <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
             hidden
             onChange={(e) => {
-                const file =
+              const file =
                 e.target.files?.[0];
 
-                if (!file) return;
+              if (!file) return;
 
-                setSelectedFile(file);
+              setSelectedFile(file);
             }}
-            />
-            <button
+          />
+
+          <button
             onClick={() =>
-                fileInputRef.current?.click()
+              fileInputRef.current?.click()
             }
-            >
+          >
             <Paperclip size={18} />
-            </button>
+          </button>
+
           <input
             value={message}
             onChange={(e) =>
@@ -160,11 +184,18 @@ export default function ChatInput() {
 
           <button
             onClick={sendMessage}
-            className="ml-4"
           >
             <Send size={18} />
           </button>
         </div>
+
+        {selectedFile && (
+          <div className="mt-3 text-sm text-purple-300">
+            Attached:
+            {" "}
+            {selectedFile.name}
+          </div>
+        )}
       </div>
     </div>
   );

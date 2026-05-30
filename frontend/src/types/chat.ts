@@ -1,6 +1,13 @@
+export type MessageType =
+  | "message"
+  | "status"
+  | "image"
+  | "evidence"
+  | "score"
+  | "report";
+
 export interface UploadedFile {
   name: string;
-
   preview: string;
 }
 
@@ -9,15 +16,13 @@ export interface ChatMessage {
 
   role: "user" | "assistant";
 
+  type: MessageType;
+
   content: string;
 
   timestamp: string;
 
   file?: UploadedFile;
 
-  type?:
-    | "message"
-    | "status"
-    | "evidence"
-    | "analysis";
+  metadata?: any;
 }
