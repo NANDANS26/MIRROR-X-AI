@@ -30,6 +30,31 @@ export const createNarrativeMessages =
           "assistant",
 
         type:
+          "spotlight",
+
+        content: "",
+
+        timestamp:
+          new Date()
+            .toISOString(),
+
+        metadata: {
+          image:
+            analysis.original_image ||
+            "",
+
+          explanation:
+            pattern.explanation,
+        },
+      });
+      messages.push({
+        id:
+          crypto.randomUUID(),
+
+        role:
+          "assistant",
+
+        type:
           "evidence",
 
         content:

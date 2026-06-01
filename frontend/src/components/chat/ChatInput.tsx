@@ -8,6 +8,10 @@ import {
   Send,
 } from "lucide-react";
 
+import {
+  useInvestigation,
+} from "../../hooks/useInvestigation";
+
 import { useChatStore } from "../../store/chatStore";
 
 export default function ChatInput() {
@@ -19,6 +23,10 @@ export default function ChatInput() {
 
   const fileInputRef =
     useRef<HTMLInputElement>(null);
+  
+  const {
+    startInvestigation,
+  } = useInvestigation();
 
   const addMessage =
     useChatStore(
@@ -31,111 +39,63 @@ export default function ChatInput() {
     );
 
   const sendMessage =
-    async () => {
-      if (
-        !message.trim() &&
-        !selectedFile
-      )
-        return;
+  async () => {
+    if (
+      !message.trim() &&
+      !selectedFile
+    )
+      return;
 
-      const userMessage =
-        message.trim();
+    let preview = "";
 
-      let preview = "";
+    if (selectedFile) {
+      preview =
+        URL.createObjectURL(
+          selectedFile
+        );
+    }
 
-      if (selectedFile) {
-        preview =
-          URL.createObjectURL(
-            selectedFile
-          );
-      }
+    addMessage({
+      id:
+        crypto.randomUUID(),
 
-      addMessage({
-        id: crypto.randomUUID(),
+      role:
+        "user",
 
-        role: "user",
+      type:
+        "message",
 
-        type: "message",
+      content:
+        message ||
+        "Uploaded screenshot",
 
-        content:
-          userMessage ||
-          "Uploaded screenshot",
+      timestamp:
+        new Date()
+          .toISOString(),
 
-        timestamp:
-          new Date().toISOString(),
+      file: selectedFile
+        ? {
+            name:
+              selectedFile.name,
 
-        file: selectedFile
-          ? {
-              name:
-                selectedFile.name,
+            preview,
+          }
+        : undefined,
+    });
 
-              preview,
-            }
-          : undefined,
-      });
+    const uploadedFile =
+      selectedFile;
 
-      setMessage("");
+    setMessage("");
 
-      setTyping(true);
+    setSelectedFile(null);
 
-      const steps = [
-        "Scanning interface structure...",
-        "Detecting urgency indicators...",
-        "Evaluating interaction pressure...",
-        "Cross-referencing manipulation patterns...",
-        "Generating forensic explanation...",
-      ];
-
-      let delay = 1000;
-
-      for (const step of steps) {
-        setTimeout(() => {
-          addMessage({
-            id:
-              crypto.randomUUID(),
-
-            role:
-              "assistant",
-
-            type:
-              "status",
-
-            content:
-              step,
-
-            timestamp:
-              new Date()
-                .toISOString(),
-          });
-        }, delay);
-
-        delay += 1200;
-      }
-
-      setTimeout(() => {
-        addMessage({
-          id:
-            crypto.randomUUID(),
-
-          role:
-            "assistant",
-
-          type:
-            "message",
-
-          content:
-            "Investigation complete.\n\nI detected several potential manipulation signals. Real backend analysis integration will replace this simulation in the next step.",
-
-          timestamp:
-            new Date()
-              .toISOString(),
-        });
-
-        setTyping(false);
-
-        setSelectedFile(null);
-      }, delay);
-    };
+    if (uploadedFile) {
+      await startInvestigation(
+        uploadedFile
+      );
+    }
+  };
 
   return (
     <div className="border-t border-white/10 p-5">

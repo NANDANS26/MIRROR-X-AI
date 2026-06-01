@@ -4,7 +4,8 @@ export type MessageType =
   | "image"
   | "evidence"
   | "score"
-  | "report";
+  | "report"
+  | "spotlight";
 
 export interface UploadedFile {
   name: string;

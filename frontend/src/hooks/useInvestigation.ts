@@ -33,43 +33,69 @@ export const useInvestigation =
             "token"
           );
 
-        if (!token) return;
+        if (!token) {
+          addMessage({
+            id:
+              crypto.randomUUID(),
 
-        setTyping(true);
+            role:
+              "assistant",
 
-        addMessage({
-          id:
-            crypto.randomUUID(),
+            type:
+              "message",
 
-          role:
-            "assistant",
+            content:
+              "Authentication required.",
 
-          type:
-            "status",
+            timestamp:
+              new Date()
+                .toISOString(),
+          });
 
-          content:
-            "Scanning interface structure...",
-
-          timestamp:
-            new Date()
-              .toISOString(),
-        });
+          return;
+        }
 
         try {
+          setTyping(true);
+
+          addMessage({
+            id:
+              crypto.randomUUID(),
+
+            role:
+              "assistant",
+
+            type:
+              "status",
+
+            content:
+              "Scanning interface structure...",
+
+            timestamp:
+              new Date()
+                .toISOString(),
+          });
+
           const result =
             await uploadForAnalysis(
               file,
               token
             );
-          
+
           const narrative =
             createNarrativeMessages(
-                result.analysis
+              result.analysis
             );
 
-            for (const message of narrative) {
-            addMessage(message);
+          narrative.forEach(
+            (message, index) => {
+              setTimeout(() => {
+                addMessage(
+                  message
+                );
+              }, index * 800);
             }
+          );
 
           setTyping(false);
 
@@ -88,7 +114,7 @@ export const useInvestigation =
               "message",
 
             content:
-              "Investigation failed.",
+              "Investigation failed. Please try again.",
 
             timestamp:
               new Date()

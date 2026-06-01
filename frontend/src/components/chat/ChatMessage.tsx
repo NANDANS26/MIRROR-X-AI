@@ -8,6 +8,11 @@ import EvidenceReveal from "../evidence/EvidenceReveal";
 
 import ScoreNarrative from "../analysis/ScoreNarrative";
 
+import TypewriterText from "../../effects/TypewriterText";
+
+import SpotlightReveal
+from "../evidence/SpotlightReveal";
+
 interface Props {
   message: Msg;
 }
@@ -22,6 +27,21 @@ export default function ChatMessage({
       <div className="text-sm text-purple-300 pl-4">
         {message.content}
       </div>
+    );
+  }
+
+  if (
+  message.type === "spotlight"
+  ) {
+    return (
+      <SpotlightReveal
+        image={
+          message.metadata.image
+        }
+        explanation={
+          message.metadata.explanation
+        }
+      />
     );
   }
 
@@ -86,8 +106,17 @@ export default function ChatMessage({
         }`}
       >
         <ReactMarkdown>
-          {message.content}
+          {message.role === "assistant"
+            ? ""
+            : message.content}
         </ReactMarkdown>
+
+        {message.role ===
+        "assistant" && (
+          <TypewriterText
+            text={message.content}
+          />
+        )}
 
         {message.file && (
           <FileMessage
