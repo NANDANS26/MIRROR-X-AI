@@ -1,5 +1,3 @@
-<![CDATA[<div align="center">
-
 # MIRROR X AI
 
 ### AI-Powered Digital Manipulation Investigator
@@ -426,4 +424,3 @@ MIT — see [LICENSE](LICENSE) for details.
 Built with the belief that users deserve to understand the interfaces that influence their decisions.
 
 </div>
-]]>
