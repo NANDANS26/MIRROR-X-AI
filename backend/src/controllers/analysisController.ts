@@ -169,10 +169,11 @@ export const getHistory = asyncHandler(
 export const removeSession = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { sessionId } = req.params;
+    const safeSessionId = Array.isArray(sessionId) ? sessionId[0] : sessionId;
 
     // Verify ownership
     const session = await prisma.analysisSession.findUnique({
-      where: { id: sessionId },
+      where: { id: safeSessionId },
     });
 
     if (!session) {
@@ -202,7 +203,7 @@ export const removeSession = asyncHandler(
     }
 
     // Delete session and all cascade records from Prisma
-    await deleteSession(sessionId);
+    await deleteSession(safeSessionId);
 
     return res.status(204).send();
   }
