@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import * as fs from "fs";
 import * as path from "path";
 import { randomUUID } from "crypto";
@@ -47,6 +46,9 @@ export async function captureUrl(url: string): Promise<ScrapeResult> {
   // Ensure the uploads directory exists (relative to the project root / CWD)
   const uploadsDir = path.resolve(process.cwd(), "uploads");
   fs.mkdirSync(uploadsDir, { recursive: true });
+
+  // Dynamic import required — Puppeteer v21+ is ESM-only but backend is CJS
+  const puppeteer = (await import("puppeteer")).default;
 
   const browser = await puppeteer.launch({
     headless: true,
