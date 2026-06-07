@@ -1,24 +1,26 @@
 /**
- * analysisController.ts — Analysis endpoint handlers.
+ * analysisController.ts
  *
- * POST /api/analysis/upload  — Upload screenshot → create session → run pipeline in background
- * POST /api/analysis/url     — Submit URL → scrape → create session → run pipeline in background
- * GET  /api/analysis/history — List authenticated user's sessions (max 100, desc)
- * DELETE /api/analysis/:sessionId — Delete session and associated data
+ * Upload flow:
+ *   1. multer puts file bytes in req.file.buffer (memoryStorage)
+ *   2. Upload to Cloudinary → get secure_url
+ *   3. Create AnalysisSession with imageUrl = secure_url
+ *   4. Kick off pipeline (passes buffer + imageUrl)
  *
- * Validates: Requirements 2.1, 9.8, 10.1, 10.2, 10.4
+ * URL flow:
+ *   1. Scrape with axios+cheerio
+ *   2. Create AnalysisSession with imageUrl = "" (no screenshot for URL scraping)
+ *   3. Kick off pipeline
  */
 
-import { Request, Response } from "express";
-import * as fs from "fs";
-import * as path from "path";
-
-import { asyncHandler } from "../utils/asyncHandler";
-import { AuthRequest } from "../middleware/authMiddleware";
-import { validateUrl } from "../utils/urlValidator";
-import { captureUrl } from "../services/scraperService";
-import { runPipeline } from "../services/pipelineOrchestrator";
-import { prisma } from "../database/prisma";
+import { Response }   from "express";
+import { asyncHandler }  from "../utils/asyncHandler";
+import { AuthRequest }   from "../middleware/authMiddleware";
+import { validateUrl }   from "../utils/urlValidator";
+import { captureUrl }    from "../services/scraperService";
+import { runPipeline }   from "../services/pipelineOrchestrator";
+import { uploadImageBuffer, deleteImage } from "../services/cloudinaryService";
+import { prisma }        from "../database/prisma";
 import { getUserSessions, deleteSession } from "../database/sessionRepository";
 
 const SESSION_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -26,187 +28,130 @@ const SESSION_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 // ---------------------------------------------------------------------------
 // POST /api/analysis/upload
 // ---------------------------------------------------------------------------
-export const uploadAnalysis = asyncHandler(
-  async (req: AuthRequest, res: Response) => {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file uploaded",
-      });
-    }
+export const uploadAnalysis = asyncHandler(async (req: AuthRequest, res: Response) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: "No file uploaded" });
+  }
 
-    // socketId can come from query param OR from the multipart body field
-    const socketId: string =
-      (req.query.socketId as string) ||
-      (req.body?.socketId as string) ||
-      "";
+  const socketId: string =
+    (req.query.socketId as string) ||
+    (req.body?.socketId as string) ||
+    "";
 
-    // Create a pending session immediately so we can return sessionId
-    const session = await prisma.analysisSession.create({
+  // 1. Upload image to Cloudinary — get a persistent URL
+  let imageUrl: string;
+  let cloudinaryPublicId: string;
+  try {
+    const uploaded = await uploadImageBuffer(req.file.buffer, req.file.mimetype);
+    imageUrl         = uploaded.secure_url;
+    cloudinaryPublicId = uploaded.public_id;
+  } catch (uploadErr) {
+    console.error("[upload] Cloudinary upload failed:", uploadErr);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to store uploaded image. Please try again.",
+    });
+  }
+
+  // 2. Create a pending session — imageUrl is now a real Cloudinary URL
+  let session;
+  try {
+    session = await prisma.analysisSession.create({
       data: {
-        userId: req.user!.userId,
-        expiresAt: new Date(Date.now() + SESSION_EXPIRY_MS),
-        sourceType: "upload",
+        userId:        req.user!.userId,
+        expiresAt:     new Date(Date.now() + SESSION_EXPIRY_MS),
+        sourceType:    "upload",
         sourceFilename: req.file.originalname || "upload.png",
-        screenshotPath: null,  // memory storage — no path
+        imageUrl,
         status: "pending",
       },
     });
-
-    // Run the pipeline in the background — don't await it
-    setImmediate(() => {
-      runPipeline(session.id, socketId, {
-        type: "upload",
-        fileBuffer: req.file!.buffer,
-        fileMimetype: req.file!.mimetype,
-        fileOriginalname: req.file!.originalname,
-      }).catch((err: unknown) => {
-        console.error("[analysisController] Pipeline error:", err);
-      });
-    });
-
-    return res.status(202).json({
-      success: true,
-      sessionId: session.id,
-    });
+  } catch (dbErr) {
+    // If DB fails, clean up the Cloudinary image we just uploaded
+    await deleteImage(cloudinaryPublicId);
+    console.error("[upload] Session creation failed:", dbErr);
+    return res.status(500).json({ success: false, message: "Failed to create analysis session." });
   }
-);
+
+  // 3. Run pipeline in background — passes buffer for OCR + imageUrl for DB/report
+  setImmediate(() => {
+    runPipeline(session.id, socketId, {
+      type:             "upload",
+      fileBuffer:       req.file!.buffer,
+      fileMimetype:     req.file!.mimetype,
+      fileOriginalname: req.file!.originalname,
+      imageUrl,
+    }).catch((err: unknown) => {
+      console.error("[analysisController] Pipeline error:", err);
+    });
+  });
+
+  return res.status(202).json({ success: true, sessionId: session.id });
+});
 
 // ---------------------------------------------------------------------------
 // POST /api/analysis/url
 // ---------------------------------------------------------------------------
-export const urlAnalysis = asyncHandler(
-  async (req: AuthRequest, res: Response) => {
-    const { url, socketId = "" } = req.body as { url: string; socketId?: string };
+export const urlAnalysis = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { url, socketId = "" } = req.body as { url: string; socketId?: string };
 
-    // Validate URL (Requirement 2.3)
-    const validation = validateUrl(url);
-    if (!validation.valid) {
-      return res.status(400).json({
-        success: false,
-        error: "INVALID_URL",
-        message: "Please provide a valid HTTP or HTTPS URL.",
-      });
-    }
-
-    // Scrape the URL
-    let scrapedData;
-    try {
-      scrapedData = await captureUrl(url);
-    } catch (err: unknown) {
-      const name = err instanceof Error ? err.name : "Error";
-      const message = err instanceof Error ? err.message : "Unknown error";
-
-      if (name === "ScraperTimeoutError") {
-        return res.status(504).json({
-          success: false,
-          error: "SCRAPER_TIMEOUT",
-          message,
-        });
-      }
-
-      if (name === "PartialRenderError") {
-        return res.status(422).json({
-          success: false,
-          error: "PARTIAL_RENDER",
-          message,
-        });
-      }
-
-      return res.status(502).json({
-        success: false,
-        error: "SCRAPER_ERROR",
-        message,
-      });
-    }
-
-    // Create a pending session immediately
-    const session = await prisma.analysisSession.create({
-      data: {
-        userId: req.user!.userId,
-        expiresAt: new Date(Date.now() + SESSION_EXPIRY_MS),
-        sourceType: "url",
-        sourceUrl: url,
-        screenshotPath: scrapedData.screenshotPath,
-        pageTitle: scrapedData.pageTitle,
-        metaDescription: scrapedData.metaDescription,
-        status: "pending",
-      },
-    });
-
-    // Run the pipeline in the background
-    setImmediate(() => {
-      runPipeline(session.id, socketId, {
-        type: "url",
-        scrapedData,
-      }).catch((err: unknown) => {
-        console.error("[analysisController] Pipeline error:", err);
-      });
-    });
-
-    return res.status(202).json({
-      success: true,
-      sessionId: session.id,
-    });
+  const validation = validateUrl(url);
+  if (!validation.valid) {
+    return res.status(400).json({ success: false, error: "INVALID_URL", message: "Please provide a valid HTTP or HTTPS URL." });
   }
-);
+
+  let scrapedData;
+  try {
+    scrapedData = await captureUrl(url);
+  } catch (err: unknown) {
+    const name    = err instanceof Error ? err.name    : "Error";
+    const message = err instanceof Error ? err.message : "Unknown error";
+    if (name === "ScraperTimeoutError") return res.status(504).json({ success: false, error: "SCRAPER_TIMEOUT",   message });
+    if (name === "PartialRenderError")  return res.status(422).json({ success: false, error: "PARTIAL_RENDER",    message });
+    return res.status(502).json({ success: false, error: "SCRAPER_ERROR", message });
+  }
+
+  // URL sessions have no uploaded image — imageUrl is empty string
+  const session = await prisma.analysisSession.create({
+    data: {
+      userId:          req.user!.userId,
+      expiresAt:       new Date(Date.now() + SESSION_EXPIRY_MS),
+      sourceType:      "url",
+      sourceUrl:       url,
+      imageUrl:        "",
+      pageTitle:       scrapedData.pageTitle,
+      metaDescription: scrapedData.metaDescription,
+      status:          "pending",
+    },
+  });
+
+  setImmediate(() => {
+    runPipeline(session.id, socketId, { type: "url", scrapedData })
+      .catch((err: unknown) => console.error("[analysisController] Pipeline error:", err));
+  });
+
+  return res.status(202).json({ success: true, sessionId: session.id });
+});
 
 // ---------------------------------------------------------------------------
 // GET /api/analysis/history
 // ---------------------------------------------------------------------------
-export const getHistory = asyncHandler(
-  async (req: AuthRequest, res: Response) => {
-    const sessions = await getUserSessions(req.user!.userId);
-
-    return res.status(200).json({
-      success: true,
-      sessions,
-    });
-  }
-);
+export const getHistory = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const sessions = await getUserSessions(req.user!.userId);
+  return res.status(200).json({ success: true, sessions });
+});
 
 // ---------------------------------------------------------------------------
 // DELETE /api/analysis/:sessionId
 // ---------------------------------------------------------------------------
-export const removeSession = asyncHandler(
-  async (req: AuthRequest, res: Response) => {
-    const { sessionId } = req.params;
-    const safeSessionId = Array.isArray(sessionId) ? sessionId[0] : sessionId;
+export const removeSession = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const raw = req.params.sessionId;
+  const sessionId = Array.isArray(raw) ? raw[0] : raw;
 
-    // Verify ownership
-    const session = await prisma.analysisSession.findUnique({
-      where: { id: safeSessionId },
-    });
+  const session = await prisma.analysisSession.findUnique({ where: { id: sessionId } });
+  if (!session) return res.status(404).json({ success: false, message: "Session not found" });
+  if (session.userId !== req.user!.userId) return res.status(403).json({ success: false, message: "Forbidden" });
 
-    if (!session) {
-      return res.status(404).json({
-        success: false,
-        message: "Session not found",
-      });
-    }
-
-    if (session.userId !== req.user!.userId) {
-      return res.status(403).json({
-        success: false,
-        message: "Forbidden",
-      });
-    }
-
-    // Delete uploaded file from disk (best-effort)
-    if (session.screenshotPath) {
-      try {
-        const filePath = path.resolve(session.screenshotPath);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      } catch {
-        // Ignore file deletion errors — DB delete is authoritative
-      }
-    }
-
-    // Delete session and all cascade records from Prisma
-    await deleteSession(safeSessionId);
-
-    return res.status(204).send();
-  }
-);
+  await deleteSession(sessionId);
+  return res.status(204).send();
+});

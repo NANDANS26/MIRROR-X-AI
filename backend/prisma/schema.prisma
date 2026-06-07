@@ -32,7 +32,7 @@ model AnalysisSession {
   sourceUrl             String?
   sourceFilename        String?
 
-  screenshotPath        String
+  imageUrl              String    // Cloudinary secure_url — persistent image storage
 
   pageTitle             String?
   metaDescription       String?

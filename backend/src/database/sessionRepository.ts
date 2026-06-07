@@ -18,13 +18,12 @@ export const createSession = async (data: {
   sourceType: string;
   sourceUrl?: string;
   sourceFilename?: string;
-  screenshotPath: string;
+  imageUrl: string;
   pageTitle?: string;
   metaDescription?: string;
   status: string;
   [key: string]: unknown;
 }) => {
-  // Enforce expiresAt = createdAt + 30 days in the repository (not the controller)
   const now = new Date();
   return prisma.analysisSession.create({
     data: {

@@ -662,49 +662,65 @@ def _build_recommendations(session_data: dict, styles: dict):
 def _build_screenshot_section(session_data: dict, styles: dict):
     elements = [_section_heading("6. Annotated Screenshot", styles)]
 
-    screenshot_path = session_data.get("screenshot_path")
+    image_url = session_data.get("image_url") or session_data.get("screenshot_path")
 
-    if screenshot_path and os.path.isfile(screenshot_path):
+    if image_url and image_url.startswith("http"):
         elements.append(
             Paragraph(
-                "The screenshot below was captured during the investigation. "
-                "Pattern overlay annotations are available in the interactive platform.",
+                "The screenshot below was captured during the investigation.",
                 styles["Body"],
             )
         )
         elements.append(Spacer(1, 8))
 
         try:
-            max_width = 6.0 * inch
-            max_height = 4.5 * inch
+            import urllib.request
+            import tempfile
+            # Download from Cloudinary URL to a temp file for embedding
+            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+                urllib.request.urlretrieve(image_url, tmp.name)
+                tmp_path = tmp.name
 
-            img = Image(screenshot_path, width=max_width, height=max_height)
+            max_width  = 6.0 * inch
+            max_height = 4.5 * inch
+            img        = Image(tmp_path, width=max_width, height=max_height)
             img.hAlign = "CENTER"
             elements.append(img)
             elements.append(Spacer(1, 6))
             elements.append(
                 Paragraph(
-                    "<i>Figure 1: Analyzed screenshot. Interactive overlay annotations "
-                    "(confidence-coded bounding boxes per detected dark pattern) are "
-                    "rendered in the MIRROR X AI platform interface.</i>",
+                    "<i>Figure 1: Analyzed screenshot.</i>",
                     styles["SmallMeta"],
                 )
             )
-        except Exception as img_err:  # noqa: BLE001
+
+            import os
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+        except Exception as img_err:
             elements.append(
                 Paragraph(
-                    f"Screenshot could not be embedded in this report "
-                    f"(file may have moved or be inaccessible: {img_err}). "
+                    f"Screenshot could not be embedded: {img_err}. "
                     "Pattern overlay annotations remain available in the interactive platform.",
                     styles["Body"],
                 )
             )
+    elif image_url and os.path.isfile(image_url):
+        # Local path fallback (local dev only)
+        try:
+            img        = Image(image_url, width=6.0 * inch, height=4.5 * inch)
+            img.hAlign = "CENTER"
+            elements.append(img)
+        except Exception as img_err:
+            elements.append(Paragraph(f"Screenshot could not be embedded: {img_err}", styles["Body"]))
     else:
         elements.append(
             Paragraph(
-                "No screenshot was available for this session, or the screenshot path "
-                "was not provided. Pattern overlay annotations are available in the "
-                "MIRROR X AI interactive platform when a screenshot has been captured.",
+                "No screenshot was available for this session. "
+                "Pattern overlay annotations are available in the MIRROR X AI interactive platform.",
                 styles["Body"],
             )
         )
