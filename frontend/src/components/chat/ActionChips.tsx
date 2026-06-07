@@ -28,7 +28,6 @@ const ACTION_MAP: Record<string, string> = {
   'Could Anything Have Been Missed?': 'EXPLAIN_FINDINGS',
   'Compare Against Known Dark Patterns': 'SHOW_DETECTION_CRITERIA',
   // Report (network call, but not Gemini)
-  'Generate Forensic Report':       'GENERATE_REPORT',
   // Legacy
   'Explain a Finding':              'EXPLAIN_FINDINGS',
   'View Risk Breakdown ':           'SHOW_SCORE',
