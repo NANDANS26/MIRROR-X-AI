@@ -12,6 +12,7 @@
 import multer from "multer";
 import { randomUUID } from "crypto";
 import path from "path";
+import { Request } from 'express';
 
 const UPLOAD_DIR = "uploads";
 
@@ -33,7 +34,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const fileFilter = (_req: any, file: any, cb: any) => {
+const fileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
   if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
     cb(null, true);
   } else {
