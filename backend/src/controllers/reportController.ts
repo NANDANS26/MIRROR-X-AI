@@ -1,8 +1,8 @@
 /**
  * reportController.ts
  *
- * Sends imageUrl (Cloudinary URL) to the AI report generator.
- * Never references screenshotPath or local files.
+ * Generates PDF report via AI service.
+ * Passes imageUrl (Cloudinary) so report can embed the screenshot.
  */
 
 import { Response } from "express";
@@ -21,48 +21,56 @@ export const createAnalysisReport = asyncHandler(async (req: AuthRequest, res: R
   if (!session)                              return res.status(404).json({ success: false, message: "Session not found" });
   if (session.userId !== req.user!.userId)   return res.status(403).json({ success: false, message: "Forbidden" });
 
+  // Cast to any to access imageUrl — Prisma type was regenerated after schema change
+  const s = session as any;
+
   const sessionData = {
-    session_id:         session.id,
-    source_url:         session.sourceUrl      ?? undefined,
-    source_filename:    session.sourceFilename ?? undefined,
-    // Pass the Cloudinary URL — report generator downloads the image from it
-    image_url:          (session as any).imageUrl ?? "",
-    detected_patterns:  session.detectedPatternsJson  ?? [],
-    scores:             session.scoresJson            ?? {},
-    simulation_results: session.simulationResultsJson ?? [],
+    session_id:         s.id,
+    source_url:         s.sourceUrl         ?? undefined,
+    source_filename:    s.sourceFilename    ?? undefined,
+    image_url:          s.imageUrl          ?? "",
+    detected_patterns:  s.detectedPatternsJson  ?? [],
+    scores:             s.scoresJson             ?? {},
+    simulation_results: s.simulationResultsJson  ?? [],
   };
 
-  let pdfBuffer: Buffer;
-  let lastErr: unknown;
+  // Try up to 3 times — AI service may be cold-starting (502)
+  let pdfData: ArrayBuffer | null = null;
+  let lastErr: string = "Report generation failed";
+
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
+      console.log(`[report] Attempt ${attempt} — calling AI service /report/generate for session ${sessionId}`);
       const aiRes = await axios.post(
         `${ENV.AI_SERVICE_URL}/report/generate`,
-        { session_id: session.id, analysis_result: sessionData },
-        { responseType: "arraybuffer", timeout: 60_000 }
+        { session_id: s.id, analysis_result: sessionData },
+        { responseType: "arraybuffer", timeout: 90_000 }
       );
-      pdfBuffer = Buffer.from(aiRes.data);
-      lastErr = null;
+      pdfData = aiRes.data;
+      console.log(`[report] Success on attempt ${attempt}. PDF size: ${(aiRes.data as ArrayBuffer).byteLength} bytes`);
       break;
     } catch (err: unknown) {
-      lastErr = err;
       const is502 = axios.isAxiosError(err) && err.response?.status === 502;
+      const errMsg = err instanceof Error ? err.message : String(err);
+      lastErr = errMsg;
+      console.warn(`[report] Attempt ${attempt} failed. is502=${is502} error=${errMsg}`);
       if (attempt < 3) {
-        const delay = is502 ? 20000 : 3000;
-        console.warn(`[report] Attempt ${attempt} failed (${is502 ? '502 cold start' : 'error'}), retrying in ${delay}ms...`);
+        const delay = is502 ? 20_000 : 4_000;
         await new Promise(r => setTimeout(r, delay));
       }
     }
   }
 
-  if (lastErr) {
-    const message = lastErr instanceof Error ? lastErr.message : "Report generation failed";
-    return res.status(500).json({ error: "REPORT_GENERATION_FAILED", message, retryable: true });
+  if (!pdfData) {
+    console.error(`[report] All 3 attempts failed. Last error: ${lastErr}`);
+    return res.status(500).json({ error: "REPORT_GENERATION_FAILED", message: lastErr, retryable: true });
   }
 
-  await updateSessionReport(session.id, `report-${session.id}.pdf`);
+  const pdfBuffer = Buffer.from(pdfData);
 
-  const filename = `mirrorx-report-${session.id}.pdf`;
+  await updateSessionReport(s.id, `report-${s.id}.pdf`);
+
+  const filename = `mirrorx-report-${s.id}.pdf`;
   res.setHeader("Content-Type",        "application/pdf");
   res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
   res.setHeader("Content-Length",      String(pdfBuffer.length));
