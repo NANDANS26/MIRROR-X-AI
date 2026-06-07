@@ -48,8 +48,8 @@ function getFallbackMessage(errorType?: string): string {
 
 export const chatWithAI = asyncHandler(
   async (req: AuthRequest, res: Response) => {
-    const sessionId =
-      typeof req.params.id === "string" ? req.params.id : req.params.sessionId;
+    const rawId = req.params.id ?? req.params.sessionId
+    const sessionId = Array.isArray(rawId) ? rawId[0] : (rawId as string)
     const { message } = req.body as { message: string };
 
     if (!message || typeof message !== "string") {
