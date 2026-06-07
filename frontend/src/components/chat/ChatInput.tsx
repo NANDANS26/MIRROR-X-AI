@@ -6,7 +6,6 @@ import { useChat } from '../../hooks/useChat'
 import { routeCommand } from '../../agent/commandRouter'
 import { useActionStore } from '../../store/actionStore'
 import { useChatStore } from '../../store/chatStore'
-import { useInvestigationSessionStore } from '../../store/investigationSessionStore'
 
 const URL_REGEX = /^https?:\/\//i
 
