@@ -16,8 +16,8 @@ import { ENV } from "../configs/env";
 
 export const createAnalysisReport = asyncHandler(
   async (req: AuthRequest, res: Response) => {
-    const sessionId =
-      typeof req.params.id === "string" ? req.params.id : req.params.sessionId;
+    const rawId = req.params.id ?? req.params.sessionId
+    const sessionId = Array.isArray(rawId) ? rawId[0] : (rawId as string)
 
     const session = await getSession(sessionId);
 
