@@ -1,8 +1,23 @@
-import * as fs from "fs";
-import * as path from "path";
-import { randomUUID } from "crypto";
+/**
+ * scraperService.ts — HTTP-based URL scraper using axios + cheerio.
+ *
+ * Replaces Puppeteer which requires system Chromium binaries not available
+ * on Render free tier. This implementation:
+ *  - Fetches the page HTML with axios (no browser needed)
+ *  - Parses DOM with cheerio (pure Node.js)
+ *  - Extracts title, meta description, button text, visible text, raw HTML
+ *  - No screenshot (not possible without a browser — screenshotPath is empty string)
+ *
+ * Limitations vs Puppeteer:
+ *  - Cannot execute JavaScript (SPA content may not be fully rendered)
+ *  - No screenshots
+ *  - Sites that require JS rendering will return partial content
+ *
+ * This is a production-viable replacement for Render free tier.
+ */
 
-// ─── Result & Error Types ─────────────────────────────────────────────────────
+import axios from "axios";
+import * as cheerio from "cheerio";
 
 export interface ScrapeResult {
   url: string;
@@ -16,123 +31,83 @@ export interface ScrapeResult {
 
 export class ScraperTimeoutError extends Error {
   constructor(url: string) {
-    super(`Navigation timeout after 30 seconds for URL: ${url}`);
+    super(`Navigation timeout fetching URL: ${url}`);
     this.name = "ScraperTimeoutError";
   }
 }
 
 export class PartialRenderError extends Error {
   constructor(count: number) {
-    super(
-      `Page rendered incompletely: only ${count} DOM elements found (minimum 10 required)`
-    );
+    super(`Page rendered incompletely: only ${count} elements found (minimum 10 required)`);
     this.name = "PartialRenderError";
   }
 }
 
-// ─── Scraper Service ─────────────────────────────────────────────────────────
-
-/**
- * Captures a URL using headless Puppeteer:
- *  - 1280×800 viewport
- *  - Full-page PNG screenshot saved to uploads/
- *  - DOM HTML extracted after up to 15 s of JS execution
- *  - Throws ScraperTimeoutError on 30 s navigation timeout
- *  - Throws PartialRenderError when DOM element count < 10
- *
- * Requirements: 2.1, 2.2, 2.4, 2.5, 2.6
- */
 export async function captureUrl(url: string): Promise<ScrapeResult> {
-  // Ensure the uploads directory exists (relative to the project root / CWD)
-  const uploadsDir = path.resolve(process.cwd(), "uploads");
-  fs.mkdirSync(uploadsDir, { recursive: true });
-
-  // Dynamic import required — Puppeteer v21+ is ESM-only but backend is CJS
-  const puppeteer = (await import("puppeteer")).default;
-
-  const browser = await puppeteer.launch({
-    headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-  });
+  let html: string;
 
   try {
-    const page = await browser.newPage();
-
-    // Requirement 2.1 — 1280×800 viewport
-    await page.setViewport({ width: 1280, height: 800 });
-
-    // Requirement 2.5 — 30-second navigation timeout; throw typed error on breach
-    try {
-      await page.goto(url, {
-        timeout: 30000,
-        waitUntil: "domcontentloaded",
-      });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      if (
-        message.includes("TimeoutError") ||
-        message.includes("Navigation timeout") ||
-        message.includes("Timeout")
-      ) {
+    const response = await axios.get<string>(url, {
+      timeout: 30_000,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+          "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+      },
+      maxRedirects: 5,
+      responseType: "text",
+    });
+    html = response.data as string;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      const code = err.code;
+      if (code === "ECONNABORTED" || code === "ETIMEDOUT") {
         throw new ScraperTimeoutError(url);
       }
-      throw err;
     }
-
-    // Requirement 2.2 — allow up to 15 s for JS execution
-    try {
-      await page.waitForSelector("body", { timeout: 15000 });
-    } catch {
-      // Body selector may not appear on all pages; continue with what rendered
-    }
-
-    // Requirement 2.6 — count DOM elements after JS execution
-    const domElementCount: number = await page.evaluate(
-      () => document.querySelectorAll("*").length
-    );
-
-    if (domElementCount < 10) {
-      throw new PartialRenderError(domElementCount);
-    }
-
-    // Requirement 2.4 — page title, meta description, all button texts
-    const pageTitle: string = await page.evaluate(() => document.title);
-
-    const metaDescription: string = await page.evaluate(() => {
-      const meta = document.querySelector<HTMLMetaElement>(
-        'meta[name="description"]'
-      );
-      return meta ? meta.content : "";
-    });
-
-    const buttons: string[] = await page.evaluate(() =>
-      Array.from(document.querySelectorAll("button")).map(
-        (btn) => btn.innerText.trim()
-      )
-    );
-
-    // Requirement 2.2 — full raw HTML
-    const domHtml: string = await page.evaluate(
-      () => document.documentElement.outerHTML
-    );
-
-    // Requirement 2.1 — full-page PNG screenshot saved to uploads/
-    const screenshotFilename = `${randomUUID()}.png`;
-    const screenshotPath = path.join(uploadsDir, screenshotFilename);
-
-    await page.screenshot({ path: screenshotPath as `${string}.png`, fullPage: true });
-
-    return {
-      url,
-      screenshotPath,
-      domHtml,
-      domElementCount,
-      pageTitle,
-      metaDescription,
-      buttons,
-    };
-  } finally {
-    await browser.close();
+    throw err;
   }
+
+  const $ = cheerio.load(html);
+
+  // Remove script and style tags to get clean text
+  $("script, style, noscript").remove();
+
+  const pageTitle = $("title").first().text().trim() || "";
+  const metaDescription =
+    $('meta[name="description"]').attr("content")?.trim() ||
+    $('meta[property="og:description"]').attr("content")?.trim() ||
+    "";
+
+  // Collect all button and link text that looks like CTAs
+  const buttons: string[] = [];
+  $("button, [type='button'], [type='submit'], a[class*='btn'], a[class*='button']").each((_, el) => {
+    const text = $(el).text().trim();
+    if (text && text.length < 100) buttons.push(text);
+  });
+
+  // Count meaningful DOM elements
+  const domElementCount = $("*").length;
+
+  if (domElementCount < 10) {
+    throw new PartialRenderError(domElementCount);
+  }
+
+  // Full HTML (cheerio re-serialised)
+  const domHtml = $.html();
+
+  return {
+    url,
+    screenshotPath: "",  // No screenshot without a browser
+    domHtml,
+    domElementCount,
+    pageTitle,
+    metaDescription,
+    buttons,
+  };
 }

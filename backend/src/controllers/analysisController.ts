@@ -47,8 +47,8 @@ export const uploadAnalysis = asyncHandler(
         userId: req.user!.userId,
         expiresAt: new Date(Date.now() + SESSION_EXPIRY_MS),
         sourceType: "upload",
-        sourceFilename: req.file.filename,
-        screenshotPath: req.file.path,
+        sourceFilename: req.file.originalname || "upload.png",
+        screenshotPath: null,  // memory storage — no path
         status: "pending",
       },
     });
@@ -57,7 +57,9 @@ export const uploadAnalysis = asyncHandler(
     setImmediate(() => {
       runPipeline(session.id, socketId, {
         type: "upload",
-        filePath: req.file!.path,
+        fileBuffer: req.file!.buffer,
+        fileMimetype: req.file!.mimetype,
+        fileOriginalname: req.file!.originalname,
       }).catch((err: unknown) => {
         console.error("[analysisController] Pipeline error:", err);
       });

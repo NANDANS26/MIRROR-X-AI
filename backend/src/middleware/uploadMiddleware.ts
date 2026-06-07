@@ -1,8 +1,10 @@
 /**
- * uploadMiddleware.ts — Multer upload configuration.
+ * uploadMiddleware.ts — Multer upload configuration (memory storage).
  *
- * - Destination: `uploads/` (relative to project root)
- * - Filename: UUID-based (no race conditions)
+ * Uses memoryStorage so files are held in RAM as Buffer objects (req.file.buffer).
+ * This works on Render free tier which has a read-only filesystem during runtime.
+ * The buffer is sent directly to the AI service as a multipart upload.
+ *
  * - MIME filter: image/jpeg, image/png, image/webp only
  * - Size limit: 10 MB
  *
@@ -10,11 +12,7 @@
  */
 
 import multer from "multer";
-import { randomUUID } from "crypto";
-import path from "path";
 import { Request } from 'express';
-
-const UPLOAD_DIR = "uploads";
 
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
@@ -22,19 +20,9 @@ const ALLOWED_MIME_TYPES = new Set([
   "image/webp",
 ]);
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB in bytes
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname || "");
-    cb(null, `${randomUUID()}${ext}`);
-  },
-});
-
-const fileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
     cb(null, true);
   } else {
@@ -42,12 +30,11 @@ const fileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
   }
 };
 
+// Memory storage — file bytes in req.file.buffer, no disk write
 export const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter,
-  limits: {
-    fileSize: MAX_FILE_SIZE,
-  },
+  limits: { fileSize: MAX_FILE_SIZE },
 });
 
-export { ALLOWED_MIME_TYPES, MAX_FILE_SIZE, UPLOAD_DIR };
+export { ALLOWED_MIME_TYPES, MAX_FILE_SIZE };

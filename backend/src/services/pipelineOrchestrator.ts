@@ -10,7 +10,7 @@
  */
 
 import axios from "axios";
-import FormData from "form-data";
+import FormData as FormData_Node from "form-data";
 import fs from "fs";
 import { Prisma } from "@prisma/client";
 
@@ -21,7 +21,10 @@ import { ScrapeResult } from "./scraperService";
 
 export interface PipelineInput {
   type: "upload" | "url";
-  filePath?: string;
+  fileBuffer?: Buffer;       // in-memory file bytes (replaces filePath)
+  fileMimetype?: string;
+  fileOriginalname?: string;
+  filePath?: string;         // legacy / local dev only
   scrapedData?: ScrapeResult;
 }
 
@@ -124,15 +127,29 @@ export async function runPipeline(
   try {
     analyzeResponse = await withRetry(async () => {
       if (input.type === "upload") {
-        if (!input.filePath) throw new Error("filePath required for upload pipeline");
-        const formData = new FormData();
-        formData.append("file", fs.createReadStream(input.filePath));
-        const res = await axios.post<AnalyzeResponse>(
-          `${ENV.AI_SERVICE_URL}/analyze/upload`,
-          formData,
-          { headers: formData.getHeaders(), timeout: 120_000 }
-        );
-        return res.data;
+        // Use in-memory buffer if available (production/Render), fall back to file path (local dev)
+        if (input.fileBuffer) {
+          const formData = new FormData();
+          const blob = new Blob([input.fileBuffer], { type: input.fileMimetype || "image/png" });
+          formData.append("file", blob, input.fileOriginalname || "upload.png");
+          const res = await axios.post<AnalyzeResponse>(
+            `${ENV.AI_SERVICE_URL}/analyze/upload`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" }, timeout: 120_000 }
+          );
+          return res.data;
+        } else if (input.filePath) {
+          const fd = new FormData_Node();
+          fd.append("file", fs.createReadStream(input.filePath));
+          const res = await axios.post<AnalyzeResponse>(
+            `${ENV.AI_SERVICE_URL}/analyze/upload`,
+            fd,
+            { headers: fd.getHeaders(), timeout: 120_000 }
+          );
+          return res.data;
+        } else {
+          throw new Error("No file data available for upload pipeline");
+        }
       } else {
         const scraped = input.scrapedData!;
         const res = await axios.post<AnalyzeResponse>(
