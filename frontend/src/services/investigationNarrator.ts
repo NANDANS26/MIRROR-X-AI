@@ -21,9 +21,7 @@ export const createNarrativeMessages = (analysis: any): ChatMessage[] => {
   const simResults: any[] = analysis?.simulation_results || []
   const scores = analysis?.scores
   const manipulation = extractScore(scores?.manipulation_score, 0)
-  const trust = extractScore(scores?.trust_score, 100)
   const friction = extractScore(scores?.friction_score, 0)
-  const fairness = scores?.ux_fairness_index ?? 'Unknown'
 
   // ── PHASE 4: Smart no-finding experience ────────────────────────────────────
   if (patterns.length === 0) {
