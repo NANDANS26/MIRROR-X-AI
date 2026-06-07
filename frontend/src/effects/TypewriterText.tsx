@@ -1,45 +1,32 @@
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from 'react'
 
 interface Props {
-  text: string;
+  text: string
+  skipAnimation?: boolean
 }
 
-export default function TypewriterText({
-  text,
-}: Props) {
-  const [display, setDisplay] =
-    useState("");
+export default function TypewriterText({ text, skipAnimation = false }: Props) {
+  const [display, setDisplay] = useState(skipAnimation ? text : '')
 
   useEffect(() => {
-    let index = 0;
+    if (skipAnimation) {
+      setDisplay(text)
+      return
+    }
 
-    setDisplay("");
+    let index = 0
+    setDisplay('')
 
-    const interval =
-      setInterval(() => {
-        index++;
+    const interval = setInterval(() => {
+      index++
+      setDisplay(text.slice(0, index))
+      if (index >= text.length) {
+        clearInterval(interval)
+      }
+    }, 18)
 
-        setDisplay(
-          text.slice(0, index)
-        );
+    return () => clearInterval(interval)
+  }, [text, skipAnimation])
 
-        if (
-          index >= text.length
-        ) {
-          clearInterval(
-            interval
-          );
-        }
-      }, 15);
-
-    return () =>
-      clearInterval(
-        interval
-      );
-  }, [text]);
-
-  return <span>{display}</span>;
+  return <span>{display}</span>
 }
