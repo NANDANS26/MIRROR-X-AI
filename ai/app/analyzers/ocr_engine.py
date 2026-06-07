@@ -1,109 +1,109 @@
 """
-ocr_engine.py — OCR text extraction using EasyOCR.
+ocr_engine.py — Text extraction using Gemini Vision API.
 
-EasyOCR is a pure-Python OCR library with no system binary dependencies.
-It works on Render free tier without apt-get / Tesseract installation.
+Replaces EasyOCR which requires downloading 100MB+ model files on first run
+(causes timeouts on Render free tier cold starts).
 
-Falls back to empty OCRResult on failure so the pipeline never crashes.
+Gemini Vision is called with the image bytes and extracts all visible text
+including prices, countdown text, button labels, and UI copy.
+Falls back to empty OCRResult on failure — pipeline continues with heuristics.
 """
 
 import logging
-import io
+import os
+import base64
 from typing import Optional
-
-from PIL import Image, UnidentifiedImageError
 
 from app.schemas.models import OCRResult, OCRWord, BoundingBox, OCRError
 
 logger = logging.getLogger(__name__)
 
-# Lazy-load the EasyOCR reader to avoid slow import at startup
-_reader = None
+DEFAULT_BBOX = BoundingBox(x=0.0, y=0.0, width=0.0, height=0.0)
 
-def _get_reader():
-    global _reader
-    if _reader is None:
-        try:
-            import easyocr
-            # gpu=False — Render free tier has no GPU
-            _reader = easyocr.Reader(['en'], gpu=False, verbose=False)
-            logger.info("[ocr_engine] EasyOCR reader initialised.")
-        except Exception as e:
-            logger.error("[ocr_engine] Failed to initialise EasyOCR: %s", e)
-            raise OCRError(f"OCR engine failed to initialise: {e}", stage="ocr_init") from e
-    return _reader
+
+def _extract_text_gemini_vision(image_bytes: bytes, mimetype: str = "image/png") -> str:
+    """
+    Use Gemini Vision to extract all visible text from an image.
+    Returns the raw text string, or empty string on failure.
+    """
+    try:
+        import google.generativeai as genai
+
+        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+        model = genai.GenerativeModel("gemini-2.5-flash")
+
+        # Encode as base64 for inline image data
+        b64_data = base64.b64encode(image_bytes).decode("utf-8")
+
+        prompt = (
+            "Extract ALL visible text from this image exactly as it appears. "
+            "Include: button labels, price text, countdown text, headings, "
+            "body copy, disclaimers, urgency messages, checkbox labels, "
+            "and any other text visible on screen. "
+            "Return the text as plain lines, one piece of text per line. "
+            "Do not describe the image — only output the extracted text."
+        )
+
+        response = model.generate_content([
+            {"mime_type": mimetype, "data": b64_data},
+            prompt,
+        ])
+
+        return response.text or ""
+
+    except Exception as exc:
+        logger.warning("[ocr_engine] Gemini Vision extraction failed: %s", exc)
+        return ""
+
+
+def _words_from_text(text: str) -> list[OCRWord]:
+    """Convert extracted text string to OCRWord list with default bboxes."""
+    words = []
+    for word in text.split():
+        word = word.strip()
+        if word:
+            words.append(OCRWord(text=word, confidence=0.95, bbox=DEFAULT_BBOX))
+    return words
 
 
 def extract_text(image_path: str) -> OCRResult:
     """
-    Extract text and bounding boxes from an image file using EasyOCR.
-    Returns OCRResult with words and full text.
-    Raises OCRError on failure.
+    Extract text from an image file using Gemini Vision.
+    Reads file bytes, passes to Gemini, returns OCRResult.
     """
     try:
-        reader = _get_reader()
+        with open(image_path, "rb") as f:
+            image_bytes = f.read()
 
-        # EasyOCR returns: [[bbox, text, confidence], ...]
-        # bbox is [[x1,y1],[x2,y1],[x2,y2],[x1,y2]]
-        results = reader.readtext(image_path, detail=1)
+        # Detect mimetype from extension
+        ext = os.path.splitext(image_path)[1].lower()
+        mime_map = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
+        mimetype = mime_map.get(ext, "image/png")
 
-        words = []
-        full_text_parts = []
+        text = _extract_text_gemini_vision(image_bytes, mimetype)
+        words = _words_from_text(text)
 
-        for (bbox, text, confidence) in results:
-            text = text.strip()
-            if not text:
-                continue
+        logger.info("[ocr_engine] Extracted %d words via Gemini Vision from %s", len(words), image_path)
+        return OCRResult(text=text, words=words)
 
-            # Convert polygon bbox to x,y,width,height
-            xs = [pt[0] for pt in bbox]
-            ys = [pt[1] for pt in bbox]
-            x = float(min(xs))
-            y = float(min(ys))
-            w = float(max(xs) - min(xs))
-            h = float(max(ys) - min(ys))
-
-            full_text_parts.append(text)
-            words.append(OCRWord(
-                text=text,
-                confidence=float(confidence) * 100,  # normalise to 0-100
-                bbox=BoundingBox(x=x, y=y, width=w, height=h),
-            ))
-
-        logger.info("[ocr_engine] Extracted %d words from %s", len(words), image_path)
-        return OCRResult(text=" ".join(full_text_parts), words=words)
-
-    except OCRError:
-        raise
-    except (FileNotFoundError, UnidentifiedImageError, OSError) as exc:
-        raise OCRError(
-            message=f"Failed to open image '{image_path}': {exc}",
-            stage="ocr",
-        ) from exc
+    except (FileNotFoundError, OSError) as exc:
+        raise OCRError(f"Failed to open image '{image_path}': {exc}", stage="ocr") from exc
     except Exception as exc:
-        raise OCRError(
-            message=f"Unexpected OCR failure for '{image_path}': {exc}",
-            stage="ocr",
-        ) from exc
+        logger.error("[ocr_engine] OCR failed for %s: %s", image_path, exc)
+        # Return empty result — pipeline continues with heuristics only
+        return OCRResult(text="", words=[])
 
 
-def extract_text_from_bytes(image_bytes: bytes, filename: str = "upload.png") -> OCRResult:
+def extract_text_from_bytes(image_bytes: bytes, mimetype: str = "image/png", filename: str = "upload.png") -> OCRResult:
     """
-    Extract text from raw image bytes (for in-memory uploads).
-    Writes to a temp file, runs OCR, cleans up.
+    Extract text directly from image bytes (for in-memory uploads).
+    No temp file needed.
     """
-    import tempfile
-    import os
-
-    suffix = os.path.splitext(filename)[1] or ".png"
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(image_bytes)
-        tmp_path = tmp.name
-
     try:
-        return extract_text(tmp_path)
-    finally:
-        try:
-            os.unlink(tmp_path)
-        except OSError:
-            pass
+        text = _extract_text_gemini_vision(image_bytes, mimetype)
+        words = _words_from_text(text)
+        logger.info("[ocr_engine] Extracted %d words via Gemini Vision from bytes", len(words))
+        return OCRResult(text=text, words=words)
+    except Exception as exc:
+        logger.error("[ocr_engine] OCR from bytes failed: %s", exc)
+        return OCRResult(text="", words=[])

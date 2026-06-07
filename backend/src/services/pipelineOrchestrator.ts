@@ -68,8 +68,23 @@ function emitProgress(socketId: string, stage: string, step: number, label: stri
   io.to(socketId).emit("stage_progress", { stage, stepNumber: step, totalSteps: 5, label });
 }
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
-async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
-  try { return await fn(); } catch { await sleep(1000); return fn(); }
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  let lastErr: unknown
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn()
+    } catch (err) {
+      lastErr = err
+      if (attempt < maxAttempts) {
+        // Longer delay on 502 (cold start) — AI service needs time to wake up
+        const is502 = axios.isAxiosError(err) && err.response?.status === 502
+        const delay = is502 ? 15000 : 2000 * attempt
+        console.warn(`[pipeline] Attempt ${attempt} failed, retrying in ${delay}ms...`)
+        await sleep(delay)
+      }
+    }
+  }
+  throw lastErr
 }
 function isQuotaError(err: unknown): boolean {
   if (!axios.isAxiosError(err)) return false;

@@ -33,15 +33,30 @@ export const createAnalysisReport = asyncHandler(async (req: AuthRequest, res: R
   };
 
   let pdfBuffer: Buffer;
-  try {
-    const aiRes = await axios.post(
-      `${ENV.AI_SERVICE_URL}/report/generate`,
-      { session_id: session.id, analysis_result: sessionData },
-      { responseType: "arraybuffer", timeout: 35_000 }
-    );
-    pdfBuffer = Buffer.from(aiRes.data);
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Report generation failed";
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const aiRes = await axios.post(
+        `${ENV.AI_SERVICE_URL}/report/generate`,
+        { session_id: session.id, analysis_result: sessionData },
+        { responseType: "arraybuffer", timeout: 60_000 }
+      );
+      pdfBuffer = Buffer.from(aiRes.data);
+      lastErr = null;
+      break;
+    } catch (err: unknown) {
+      lastErr = err;
+      const is502 = axios.isAxiosError(err) && err.response?.status === 502;
+      if (attempt < 3) {
+        const delay = is502 ? 20000 : 3000;
+        console.warn(`[report] Attempt ${attempt} failed (${is502 ? '502 cold start' : 'error'}), retrying in ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
+  }
+
+  if (lastErr) {
+    const message = lastErr instanceof Error ? lastErr.message : "Report generation failed";
     return res.status(500).json({ error: "REPORT_GENERATION_FAILED", message, retryable: true });
   }
 
