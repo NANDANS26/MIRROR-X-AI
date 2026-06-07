@@ -15,6 +15,22 @@ import api from '../services/api'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// Warm up both Render services as soon as the login page loads
+// so they aren't cold-starting when the user actually needs them
+function useWarmup() {
+  useEffect(() => {
+    const ping = async () => {
+      try {
+        await Promise.allSettled([
+          fetch('https://mirror-x-ai-backend.onrender.com/api/health', { method: 'GET' }),
+          fetch('https://mirror-x-ai-ai.onrender.com/', { method: 'GET' }),
+        ])
+      } catch { /* silently ignore */ }
+    }
+    ping()
+  }, [])
+}
+
 // ---------------------------------------------------------------------------
 // Background — identical to RegisterBackground (violet/cyan hex + nodes)
 // ---------------------------------------------------------------------------
@@ -180,6 +196,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Warm up backend + AI service on page load to reduce cold start delays
+  useWarmup()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -365,6 +384,33 @@ export default function LoginPage() {
           </p>
         </div>
       </motion.div>
+
+      {/* Cold start notice — Render free tier spins down after 15 min of inactivity */}
+      <div style={{
+        position: 'fixed',
+        bottom: 16,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 10,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '7px 14px',
+        borderRadius: 20,
+        background: 'rgba(6,2,22,0.85)',
+        border: '1px solid rgba(120,60,220,0.25)',
+        backdropFilter: 'blur(12px)',
+        maxWidth: 420,
+      }}>
+        <motion.div
+          animate={{ opacity: [0.4, 1, 0.4] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          style={{ width: 6, height: 6, borderRadius: '50%', background: '#a040ff', flexShrink: 0 }}
+        />
+        <span style={{ fontSize: 10, color: 'rgba(160,100,240,0.7)', textAlign: 'center' }}>
+          Waking up AI services — first analysis may take 30–60s on free tier
+        </span>
+      </div>
     </div>
   )
 }

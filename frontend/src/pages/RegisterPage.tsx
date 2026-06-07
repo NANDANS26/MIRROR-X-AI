@@ -14,6 +14,20 @@ import api from '../services/api'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+function useWarmup() {
+  useEffect(() => {
+    const ping = async () => {
+      try {
+        await Promise.allSettled([
+          fetch('https://mirror-x-ai-backend.onrender.com/api/health', { method: 'GET' }),
+          fetch('https://mirror-x-ai-ai.onrender.com/', { method: 'GET' }),
+        ])
+      } catch { /* silently ignore */ }
+    }
+    ping()
+  }, [])
+}
+
 // ---------------------------------------------------------------------------
 // Animated background — crystalline emergence lattice
 // ---------------------------------------------------------------------------
@@ -183,6 +197,8 @@ export default function RegisterPage() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useWarmup()
 
   const validate = (): string | null => {
     if (!EMAIL_REGEX.test(email)) return 'Please enter a valid email address.'
@@ -374,6 +390,9 @@ export default function RegisterPage() {
           </p>
         </div>
       </motion.div>
+      <span style={{ fontSize: 10, color: 'rgba(160,100,240,0.7)', textAlign: 'center' }}>
+          Waking up AI services — first analysis may take 30–60s on free tier
+        </span>
     </div>
   )
 }
