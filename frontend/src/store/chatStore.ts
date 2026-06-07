@@ -21,9 +21,9 @@ export const useChatStore = create<ChatStore>((set) => ({
     {
       id: "welcome",
       role: "assistant",
-      content:
-        "Hello. I'm MIRROR X AI.\n\nUpload a screenshot or share a URL and I'll investigate potential manipulation patterns, explain my reasoning, and guide you through the findings.",
+      content: "Hello. I'm MIRROR X AI.\n\nUpload a screenshot or share a URL and I'll investigate potential manipulation patterns, explain my reasoning, and guide you through the findings.",
       timestamp: new Date().toISOString(),
+      type: "message"
     },
   ],
 
