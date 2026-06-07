@@ -10,7 +10,7 @@
  */
 
 import axios from "axios";
-import FormData as FormData_Node from "form-data";
+import {FormData as FormData_Node} from "form-data";
 import fs from "fs";
 import { Prisma } from "@prisma/client";
 
