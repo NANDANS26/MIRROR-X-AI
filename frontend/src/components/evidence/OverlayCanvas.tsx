@@ -65,7 +65,7 @@ export default function OverlayCanvas({ patterns, imageWidth, imageHeight }: Pro
               strokeWidth={2}
               fill="transparent"
               style={{ pointerEvents: 'all', cursor: 'pointer' }}
-              onMouseEnter={(e) => {
+              onMouseEnter={(_e) => {
                 setTooltip({
                   x: bb.x + bb.width / 2,
                   y: bb.y,
