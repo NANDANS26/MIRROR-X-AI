@@ -71,7 +71,7 @@ The database must be deployed first because the backend needs its connection URL
 2. Scroll down to the **Connections** section
 3. Find **External Database URL** — it looks like:
    ```
-   postgresql://mirror_x_ai_user:ylkfLNimiDyGVtnLACqO2K7hygkF4m8s@dpg-d8ig04vlk1mc7384o9sg-a.oregon-postgres.render.com/mirror_x_ai
+   postgresql://mirror_x_ai_user:.....oregon-postgres.render.com/mirror_x_ai
    ```
 4. Click the **copy** icon next to it
 5. **Save this URL somewhere safe** — you will need it in Step 2
