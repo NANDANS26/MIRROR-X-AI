@@ -1,181 +1,299 @@
-# MIRROR X AI
+<div align="center">
 
-### AI-Powered Digital Manipulation Investigator
+<!-- Animated Header Banner -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f0c29,50:302b63,100:24243e&height=200&section=header&text=MIRROR%20X%20AI&fontSize=72&fontColor=ffffff&fontAlignY=38&desc=AI-Powered%20Digital%20Manipulation%20Investigator&descAlignY=58&descSize=18&animation=fadeIn" width="100%"/>
 
-**Detect dark patterns. Simulate user impact. Generate forensic reports.**
+<!-- Animated typing effect badge -->
+<a href="https://git.io/typing-svg">
+  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=22&pause=1000&color=7C3AED&center=true&vCenter=true&width=700&lines=Detect+Dark+Patterns.;Simulate+User+Impact.;Generate+Forensic+Reports.;Built+for+UX+Researchers.;Powered+by+Gemini+2.5+Flash." alt="Typing SVG" />
+</a>
 
-Built for UX researchers, consumer advocates, and anyone who wants to know when a website is designed against them.
+<br/>
 
----
+<!-- Core badges -->
+[![React](https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript_6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Gemini](https://img.shields.io/badge/Gemini_2.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL_15-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![License: MIT](https://img.shields.io/badge/MIT-yellow?style=for-the-badge&logo=opensourceinitiative&logoColor=black)](LICENSE)
 
-[![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=white)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-4285F4?logo=google&logoColor=white)](https://ai.google.dev)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql&logoColor=white)](https://postgresql.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node.js_18+-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Python](https://img.shields.io/badge/Python_3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Tailwind](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=flat-square&logo=prisma&logoColor=white)](https://prisma.io)
+[![Three.js](https://img.shields.io/badge/Three.js-000000?style=flat-square&logo=threedotjs&logoColor=white)](https://threejs.org)
+[![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=flat-square&logo=socketdotio&logoColor=white)](https://socket.io)
 
 </div>
 
 ---
 
-## What Is This?
+## 🕵️ What Is MIRROR X AI?
 
-MIRROR X AI is a conversational forensic investigator for digital manipulation. You upload a screenshot or submit a URL, and the AI investigates the interface for manipulative design patterns — then narrates its findings like a professional analyst, not a dashboard.
+MIRROR X AI is a **conversational forensic investigator** for digital manipulation. Upload a screenshot or paste a URL — the AI tears apart the interface and exposes every psychological trick baked into the design.
 
-The experience is designed to feel like talking to an intelligent investigator, not submitting a form.
+The experience is built to feel like talking to an elite investigator, not filling out a form. Every finding is narrated, every risk scored, every pattern visualised on the screenshot itself. It doesn't just tell you something is wrong — it shows you *exactly where and why*.
 
----
-
-## Features
-
-### Core Investigation
-- **Screenshot Analysis** — Upload any UI screenshot; OCR extracts all visible text and the AI inspects it
-- **Live URL Analysis** — Submit a URL; Puppeteer captures a full-page screenshot + DOM for analysis
-- **8 Dark Pattern Categories** — Fake Urgency, Confirm Shaming, Forced Continuity, Visual Coercion, Roach Motel, Sneak Into Basket, Misdirection, Hidden Costs
-
-### AI Intelligence
-- **Gemini 2.5 Flash** — Powers all analysis, chat, and report generation
-- **Quota-Optimised** — Max 2 Gemini calls per investigation (1 for analysis + 1 per chat message)
-- **Graceful Degradation** — Falls back to heuristic analysis when quota is exceeded; never returns 500
-
-### Scoring & Risk Assessment
-- **Manipulation Score** (0–100)
-- **Trust Score** (0–100)
-- **Friction Score** (0–100) — measures how hard it is to cancel/unsubscribe
-- **UX Fairness Index** — Fair / Moderate Risk / High Risk
-
-### Behavioral Simulation
-- Simulates impact across 4 user personas: Elderly User, Distracted User, Impulsive User, First-Time User
-- Per-persona severity escalation for sensitive pattern categories
-
-### Reporting
-- **PDF Forensic Report** — Executive summary, findings, risk scores, simulation results, annotated screenshot
-- Generated on-demand, streamed as binary PDF to the browser
-
-### Chat
-- Conversational follow-up with full session context
-- 10-message conversation memory window
-- Grounded in actual analysis results
-
-### Frontend
-- Cinematic AI operating system interface (JARVIS-style)
-- Real-time WebSocket pipeline progress
-- 3D Neural Background (Three.js / React Three Fiber)
-- Animated Investigation Orb (state-reactive)
-- Action chips — no typing required for common actions
-- Smart chat scrolling (preserves reading position)
+> Built for UX researchers, consumer advocates, and anyone who wants to understand when a website is designed against them.
 
 ---
 
-## Architecture
+## 📸 Sample Inputs — What MIRROR X AI Investigates
+
+> These are **real-world UI screenshots** fed as inputs to the investigator. The AI analyses whatever you drop in — from squeaky-clean interfaces to dark-pattern minefield checkouts.
+
+<div align="center">
+
+<table>
+  <tr>
+    <th align="center" width="50%">
+      <img src="https://img.shields.io/badge/VERDICT-✅%20CLEAN%20INTERFACE-22c55e?style=for-the-badge&logoColor=white"/>
+    </th>
+    <th align="center" width="50%">
+      <img src="https://img.shields.io/badge/VERDICT-🚨%20DARK%20PATTERNS%20DETECTED-dc2626?style=for-the-badge&logoColor=white"/>
+    </th>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="chatbot1.png" alt="Sample Input — Clean Safe Interface" width="100%" style="border-radius:12px; border: 2px solid #22c55e; box-shadow: 0 8px 32px rgba(34,197,94,0.35)"/>
+      <br/><br/>
+      <b>� Safe Interface — Low Manipulation Score</b>
+      <br/>
+      <sub>Clear CTAs, honest copy, no guilt-tripping, transparent pricing. MIRROR X AI returns a high Trust Score and a near-zero Manipulation Score for inputs like this.</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="chatbot2.png" alt="Sample Input — Dark Pattern Riddled Interface" width="100%" style="border-radius:12px; border: 2px solid #dc2626; box-shadow: 0 8px 32px rgba(220,38,38,0.35)"/>
+      <br/><br/>
+      <b>� Manipulative Interface — High Manipulation Score</b>
+      <br/>
+      <sub>Fake urgency timers, confirm-shaming opt-outs, pre-ticked hidden fees, roach-motel cancellation. The AI flags every pattern, scores severity per persona, and narrates exactly what's being exploited.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <sub>🛡️ <b>Manipulation Score:</b> ~12 / 100 &nbsp;|&nbsp; 🤝 <b>Trust Score:</b> ~88 / 100</sub>
+    </td>
+    <td align="center">
+      <sub>⚠️ <b>Manipulation Score:</b> ~79 / 100 &nbsp;|&nbsp; ❌ <b>Trust Score:</b> ~21 / 100</sub>
+    </td>
+  </tr>
+</table>
+
+> 💡 **How to use:** Drag either type of screenshot (or any UI you want investigated) directly into the MIRROR X AI chat. The pipeline runs automatically.
+
+</div>
+
+---
+
+## ✨ Feature Highlights
+
+<div align="center">
+
+| 🔍 Core Investigation | 🧠 AI Intelligence | 📊 Scoring & Risk |
+|:---|:---|:---|
+| Screenshot upload + OCR text extraction | Gemini 2.5 Flash for all analysis | Manipulation Score (0–100) |
+| Live URL capture via Puppeteer | Max 2 Gemini calls per investigation | Trust Score (0–100) |
+| 8 dark pattern categories detected | Graceful heuristic fallback on quota | Friction Score (0–100) |
+| Full-page DOM analysis | Batch prompt optimisation | UX Fairness Index |
+
+| 👥 Behavioral Simulation | 📄 Reporting | 💬 Conversational Chat |
+|:---|:---|:---|
+| 4 user personas modelled | Structured text forensic report | 10-message session memory |
+| Elderly User impact scoring | Executive summary + findings | Context-grounded responses |
+| Impulsive / Distracted / First-Time | Per-pattern analysis narrative | Action chips for zero-typing |
+| Per-persona severity escalation | Delivered inline in the chat | Natural language follow-up |
+
+</div>
+
+---
+
+## 🎨 Frontend Experience
+
+<div align="center">
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  Frontend  (React 18 + Vite + Tailwind + Three.js)  │
-│  Port: 5173                                          │
-└──────────────────────┬──────────────────────────────┘
-                       │ REST + WebSocket
-┌──────────────────────▼──────────────────────────────┐
-│  Backend   (Node.js + Express + Socket.io + Prisma) │
-│  Port: 3001                                          │
-└──────────────┬──────────────────┬───────────────────┘
-               │ REST             │ Prisma ORM
-┌──────────────▼──────────┐  ┌───▼──────────────────┐
-│  AI Service (FastAPI)   │  │  PostgreSQL           │
-│  Port: 8000             │  │  Port: 5432           │
-└─────────────────────────┘  └───────────────────────┘
+╔══════════════════════════════════════════════════════════════════╗
+║                    MIRROR X AI — UI STACK                        ║
+╠══════════════╦═══════════════════════════╦═══════════════════════╣
+║  Three.js    ║  React Three Fiber        ║  3D Neural Background ║
+║  Framer      ║  Spring animations        ║  State transitions    ║
+║  GSAP        ║  Micro-interactions       ║  Glow effects         ║
+║  Lenis       ║  Smooth scroll            ║  Momentum-based UX    ║
+║  Zustand     ║  Multi-store reactive     ║  Chat / Pipeline /    ║
+║              ║  state management         ║  Session / Agent      ║
+╚══════════════╩═══════════════════════════╩═══════════════════════╝
 ```
 
-### Request Flow
-1. User uploads screenshot or submits URL
-2. Backend creates a pending session and returns `sessionId` immediately
-3. Backend runs pipeline in background, emitting WebSocket events at each stage
-4. AI Service performs: OCR → Rule Engine → Gemini Analysis → Simulation → Scoring
-5. Results persisted to PostgreSQL; `session_complete` emitted
-6. Frontend fetches full results and renders narrative findings
+</div>
+
+- **Cinematic AI OS Interface** — JARVIS-inspired, built to feel like intelligence in motion
+- **Animated Investigation Orb** — reactive to pipeline state: idle → investigating → warning → explaining
+- **3D Neural Background** — Three.js/R3F particle network with ~200 nodes and proximity-based edges
+- **Real-time WebSocket Progress** — `session_started` → `stage_progress` → `session_complete` live updates
+- **Action Chips** — common commands surfaced as one-tap buttons (no typing required)
+- **Smart Chat Scrolling** — preserves your reading position while new messages arrive
+- **Voice Narration** — browser TTS reads investigation findings aloud
+- **Command Router** — text input routed to the right action automatically
 
 ---
 
-## Tech Stack
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│         Frontend  (React 18 + Vite + Tailwind + Three.js)       │
+│         Port: 5173   ←  Vercel (production)                     │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │  REST + WebSocket (Socket.io)
+┌───────────────────────────▼─────────────────────────────────────┐
+│         Backend   (Node.js + Express + Socket.io + Prisma)      │
+│         Port: 3001  ←  Render (production)                      │
+└──────────────────┬───────────────────────┬──────────────────────┘
+                   │  HTTP REST            │  Prisma ORM
+    ┌──────────────▼────────────┐   ┌──────▼──────────────────────┐
+    │  AI Service  (FastAPI)    │   │  PostgreSQL 15              │
+    │  Port: 8000               │   │  Port: 5432                 │
+    │  ← Render (production)    │   │  ← Render (production)      │
+    └───────────────────────────┘   └─────────────────────────────┘
+```
+
+### Pipeline Flow
+
+```
+User Input (screenshot / URL)
+        │
+        ▼
+┌─── Backend ──────────────────────────────────────────────────────┐
+│  1. Session created  →  sessionId returned immediately           │
+│  2. Pipeline runs in background                                  │
+│  3. WebSocket emits stage_progress at each step                  │
+└──────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌─── AI Service ───────────────────────────────────────────────────┐
+│  Stage 1: OCR          → pytesseract extracts text + bboxes      │
+│  Stage 2: Rule Engine  → 8-category pattern detection            │
+│  Stage 3: Gemini       → AI analysis + confidence scoring        │
+│  Stage 4: Simulation   → 4-persona behavioral impact             │
+│  Stage 5: Scoring      → Manipulation / Trust / Friction scores  │
+└──────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+Results persisted → PostgreSQL
+WebSocket: session_complete → Frontend fetches + renders narrative
+```
+
+---
+
+## 🕷️ Dark Patterns Detected
+
+<div align="center">
+
+| Pattern | What It Looks Like |
+|:---|:---|
+| 🚨 **Fake Urgency** | "Only 2 left!" countdown timers, artificial scarcity |
+| 😔 **Confirm Shaming** | Opt-out labels using guilt — "No thanks, I hate saving money" |
+| 🔄 **Forced Continuity** | Auto-renewing subscriptions buried in fine print |
+| 👁️ **Visual Coercion** | Pre-checked boxes, low-contrast decline buttons |
+| 🪤 **Roach Motel** | Sign up in 10 seconds, cancel in 10 steps |
+| 🛒 **Sneak Into Basket** | Items auto-added without explicit user consent |
+| 🎭 **Misdirection** | Deceptive button placement, confusing action labels |
+| 💸 **Hidden Costs** | Fees revealed only at the final checkout step |
+
+</div>
+
+---
+
+## 🛠️ Tech Stack
+
+<div align="center">
 
 | Layer | Technologies |
-|-------|-------------|
+|:---|:---|
 | **Frontend** | React 18, TypeScript, Vite 8, Tailwind CSS v4, Three.js, React Three Fiber, Framer Motion, GSAP, Lenis, Zustand, Socket.io-client |
 | **Backend** | Node.js, Express.js, TypeScript, Prisma ORM, Socket.io, Puppeteer, JWT, bcrypt, Multer |
-| **AI Service** | Python 3.11+, FastAPI, pytesseract, Pillow, Google Gemini 2.5 Flash, reportlab, Hypothesis (property-based testing) |
+| **AI Service** | Python 3.11+, FastAPI, pytesseract, Pillow, Google Gemini 2.5 Flash, Hypothesis |
 | **Database** | PostgreSQL 15 |
-| **Testing** | Jest, ts-jest, fast-check (backend) • pytest + Hypothesis (AI service) |
+| **Testing** | Jest + ts-jest + fast-check (backend) • pytest + Hypothesis PBT (AI service) |
+| **Deployment** | Vercel (frontend) • Render (backend + AI + DB) |
+
+</div>
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 mirror-x-ai/
-├── frontend/           # React + TypeScript SPA
-│   └── src/
-│       ├── pages/      # InvestigatorPage, LoginPage, RegisterPage
-│       ├── components/ # Chat, Evidence, Analysis, Layout
-│       ├── hooks/      # useInvestigation, useWebSocket, useChat
-│       ├── store/      # Zustand stores (agent, chat, pipeline, session)
-│       ├── services/   # API client, Socket.io, Investigation Narrator
-│       ├── background/ # Three.js/R3F Neural Background
-│       └── widgets/    # Investigation Orb
 │
-├── backend/            # Node.js + Express API
+├── frontend/                    # React + TypeScript SPA
 │   └── src/
-│       ├── controllers/ # auth, analysis, chat, report
-│       ├── services/    # pipelineOrchestrator, scraperService
-│       ├── database/    # Prisma client, sessionRepository
-│       ├── middleware/  # auth, upload, error
-│       └── routes/      # auth, analysis, chat, report, health
+│       ├── pages/               # InvestigatorPage, LoginPage, RegisterPage
+│       ├── components/
+│       │   ├── chat/            # ChatMessage, ChatInput, FileMessage
+│       │   ├── evidence/        # EvidenceReveal, OverlayCanvas
+│       │   ├── analysis/        # ScoreNarrative
+│       │   └── layout/          # Sidebar
+│       ├── hooks/               # useInvestigation, useWebSocket, useChat
+│       ├── store/               # Zustand: agent, chat, pipeline, session, action
+│       ├── services/            # API client, Socket.io, Investigation Narrator
+│       ├── background/          # Three.js/R3F NeuralBackground
+│       ├── controllers/         # EvidenceController, command router
+│       └── widgets/             # Investigation Orb (state-reactive)
 │
-├── ai/                 # Python FastAPI microservice
+├── backend/                     # Node.js + Express API
+│   └── src/
+│       ├── controllers/         # auth, analysis, chat, report
+│       ├── services/            # pipelineOrchestrator, scraperService
+│       ├── database/            # Prisma client, sessionRepository
+│       ├── middleware/          # auth (JWT), upload (Multer), error
+│       └── routes/              # auth, analysis, chat, report, health
+│
+├── ai/                          # Python FastAPI microservice
 │   └── app/
-│       ├── api/        # analyze, simulate, score, chat, report
-│       ├── analyzers/  # ocr_engine, rule_engine, analyzer
-│       ├── simulation/ # simulation_engine (4 personas)
-│       ├── scoring/    # scoring_engine
-│       ├── reports/    # report_generator (reportlab PDF)
-│       ├── prompts/    # prompt_builder
-│       ├── services/   # gemini_client
-│       ├── schemas/    # Pydantic models
-│       └── utils/      # output_filter (ethical AI guardrails)
-│
-└── .kiro/specs/        # Spec-driven development artifacts
+│       ├── api/                 # analyze, simulate, score, chat, report
+│       ├── analyzers/           # ocr_engine, rule_engine, visual_heuristics
+│       ├── simulation/          # simulation_engine (4 personas)
+│       ├── scoring/             # scoring_engine
+│       ├── reports/             # report_generator (structured text output)
+│       ├── prompts/             # prompt_builder
+│       ├── services/            # gemini_client
+│       ├── schemas/             # Pydantic models
+│       └── utils/               # output_filter (ethical AI guardrails)
 ```
 
 ---
 
-## Prerequisites
+## ⚡ Prerequisites
 
 | Tool | Version | Notes |
-|------|---------|-------|
-| Node.js | ≥ 18 | For backend and frontend |
-| Python | 3.11+ | For AI service (venv recommended) |
-| PostgreSQL | 15 | Local instance at port 5432 |
+|:---|:---|:---|
+| Node.js | ≥ 18 | Backend + Frontend |
+| Python | 3.11+ | AI service (venv strongly recommended) |
+| PostgreSQL | 15 | Local instance on port 5432 |
 | Tesseract OCR | 5.x | Required for screenshot text extraction |
 | Google Gemini API Key | — | Free tier: 20 requests/day |
 
-### Install Tesseract (Windows)
+**Install Tesseract on Windows:**
 Download from [UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) and add to PATH.
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-### 1. Clone the repository
+### 1 — Clone
 
 ```bash
 git clone https://github.com/your-username/mirror-x-ai.git
 cd mirror-x-ai
 ```
 
-### 2. Start PostgreSQL
+### 2 — Start PostgreSQL
 
 ```bash
-# Docker (recommended)
+# Using Docker (recommended)
 docker run -d --name mirror-x-pg \
   -p 5432:5432 \
   -e POSTGRES_PASSWORD=postgres \
@@ -183,141 +301,141 @@ docker run -d --name mirror-x-pg \
   postgres:15
 ```
 
-### 3. Set up the Backend
+### 3 — Backend
 
 ```bash
 cd backend
-
-# Install dependencies
 npm install
 
-# Configure environment
+# Configure env
 cp .env.example .env
-# Edit .env with your DATABASE_URL and JWT_SECRET
+# Edit .env — set DATABASE_URL and JWT_SECRET
 
-# Run database migrations
+# Run migrations + generate Prisma client
 npx prisma migrate deploy
-
-# Generate Prisma client
 npx prisma generate
 
-# Start development server
+# Start dev server
 npm run dev
+# → http://localhost:3001
 ```
 
-**Backend .env:**
+**`backend/.env`**
 ```env
 PORT=3001
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mirror_x_ai"
-JWT_SECRET=your-secret-key-here
+JWT_SECRET=your-secret-key-here-minimum-32-chars
 AI_SERVICE_URL=http://localhost:8000
 ```
 
-### 4. Set up the AI Service
+### 4 — AI Service
 
 ```bash
 cd ai
 
-# Create and activate virtual environment
+# Create virtual environment
 python -m venv venv
 venv\Scripts\activate        # Windows
 # source venv/bin/activate   # macOS/Linux
 
-# Install dependencies
 pip install -r requirements.txt
 
-# Configure environment
 cp .env.example .env
-# Add your GEMINI_API_KEY
+# Add GEMINI_API_KEY
 
-# Start the service
 uvicorn app.main:app --reload --port 8000
+# → http://localhost:8000
 ```
 
-**AI Service .env:**
+**`ai/.env`**
 ```env
 GEMINI_API_KEY=your-gemini-api-key-here
 ```
 
-Get a free Gemini API key at [aistudio.google.com](https://aistudio.google.com).
+Get a free Gemini key at [aistudio.google.com](https://aistudio.google.com).
 
-### 5. Set up the Frontend
+### 5 — Frontend
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
+# → http://localhost:5173
 ```
 
-Visit [http://localhost:5173](http://localhost:5173)
+### Full Startup Order
+
+```
+1. PostgreSQL   →   ensure service is running
+2. AI Service   →   uvicorn on :8000
+3. Backend      →   npm run dev on :3001
+4. Frontend     →   npm run dev on :5173
+```
 
 ---
 
-## Usage
+## 🧭 Usage Guide
 
 ### Investigate a Screenshot
 1. Click the paperclip icon or drag a screenshot into the chat
 2. The AI immediately begins forensic analysis
-3. Watch real-time pipeline progress in the right panel
+3. Watch real-time pipeline progress (OCR → Rules → Gemini → Simulation → Scoring)
 4. Read the investigation narrative in the chat
 5. Use action chips to dig deeper or generate a report
 
 ### Investigate a URL
 1. Paste any `https://` URL into the chat input
-2. The URL badge appears; press Enter or click Send
-3. MIRROR X AI captures the live page with Puppeteer
-4. Full analysis proceeds the same as screenshot mode
+2. The URL badge appears — press Enter or click Send
+3. MIRROR X AI captures the live page via Puppeteer
+4. Full analysis proceeds identically to screenshot mode
 
-### Generate a Report
-- Click the **Generate PDF Report** action chip, or
+### Generate a Forensic Report
+- Click the **Generate Report** action chip, or
 - Type "generate report" in the chat
+- The full structured report renders **inline in the chat** — executive summary, per-pattern breakdown, scores, and persona impact analysis — no file download needed
 
-### Chat Follow-up
-Ask questions about the findings in natural language:
-- "Why is the manipulation score so high?"
-- "Which pattern is most harmful to elderly users?"
-- "What would a redesign of the checkout look like?"
+### Chat Follow-Up
+Ask anything in natural language:
+- *"Why is the manipulation score so high?"*
+- *"Which pattern is most harmful to elderly users?"*
+- *"What would a fairer redesign of this checkout look like?"*
 
 ---
 
-## API Reference
+## 🔌 API Reference
 
-### Backend API (port 3001)
+### Backend (port 3001)
 
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
+|:---|:---|:---|:---|
 | POST | `/api/auth/register` | — | Register, returns JWT |
 | POST | `/api/auth/login` | — | Login, returns JWT |
-| POST | `/api/analysis/upload` | JWT | Upload screenshot, returns sessionId |
-| POST | `/api/analysis/url` | JWT | Submit URL, returns sessionId |
+| POST | `/api/analysis/upload` | JWT | Upload screenshot → returns sessionId |
+| POST | `/api/analysis/url` | JWT | Submit URL → returns sessionId |
 | GET | `/api/analysis/:sessionId` | JWT | Fetch full session results |
 | GET | `/api/analysis/history` | JWT | List past 100 sessions |
 | DELETE | `/api/analysis/:sessionId` | JWT | Delete session |
-| GET | `/api/report/:sessionId` | JWT | Stream PDF binary |
-| POST | `/api/chat/:sessionId` | JWT | Chat with context |
+| GET | `/api/report/:sessionId` | JWT | Get structured text report for session |
+| POST | `/api/chat/:sessionId` | JWT | Chat with full session context |
 | GET | `/api/health` | — | Health check |
 | GET | `/api/health/db` | — | Database connectivity check |
 
-### AI Service API (port 8000)
+### AI Service (port 8000)
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
+|:---|:---|:---|
 | POST | `/analyze/upload` | OCR + rule engine + Gemini analysis |
 | POST | `/analyze/url` | Analyze scraped DOM data |
 | POST | `/simulate` | Behavioral simulation (4 personas) |
 | POST | `/score` | Compute risk scores |
-| POST | `/chat/explain` | AI Investigator response |
-| POST | `/report/generate` | Generate PDF report |
+| POST | `/chat/explain` | AI Investigator chat response |
+| POST | `/report/generate` | Generate structured text forensic report |
 | GET | `/health` | Health check |
 
 ### WebSocket Events (Socket.io)
 
 | Event | Direction | Payload |
-|-------|-----------|---------|
+|:---|:---|:---|
 | `session_started` | Server → Client | `{ sessionId }` |
 | `stage_progress` | Server → Client | `{ stage, stepNumber, totalSteps, label }` |
 | `session_complete` | Server → Client | `{ sessionId, ai_error? }` |
@@ -325,95 +443,107 @@ Ask questions about the findings in natural language:
 
 ---
 
-## Dark Patterns Detected
+## 🧪 Running Tests
 
-| Pattern | Description |
-|---------|-------------|
-| **Fake Urgency** | Countdown timers, scarcity language, "only X left" |
-| **Confirm Shaming** | Opt-out labels using guilt or shame |
-| **Forced Continuity** | Auto-renewing subscriptions buried in fine print |
-| **Visual Coercion** | Pre-checked boxes, low-contrast decline buttons |
-| **Roach Motel** | Easy to sign up, hard to cancel |
-| **Sneak Into Basket** | Items auto-added without explicit consent |
-| **Misdirection** | Deceptive button placement or confusing action labels |
-| **Hidden Costs** | Fees revealed only at checkout |
-
----
-
-## Running Tests
-
-### Backend Tests (118 tests)
+### Backend (118 tests — Jest + fast-check PBT)
 ```bash
 cd backend
 npm test
 ```
 
-### AI Service Tests (266 tests, includes Hypothesis property-based tests)
+### AI Service (266 tests — pytest + Hypothesis PBT)
 ```bash
 cd ai
 venv\Scripts\activate
 python -m pytest tests/ -v
 ```
 
----
-
-## Environment Variables Reference
-
-### Backend (`backend/.env`)
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `PORT` | No | Server port (default: 3001) |
-| `DATABASE_URL` | **Yes** | PostgreSQL connection string |
-| `JWT_SECRET` | **Yes** | Secret for JWT signing (min 32 chars) |
-| `AI_SERVICE_URL` | No | AI service URL (default: http://localhost:8000) |
-
-### AI Service (`ai/.env`)
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GEMINI_API_KEY` | **Yes** | Google Gemini API key |
+Property-based tests cover: scoring invariants, output filter guarantees, OCR contract properties, simulation boundary conditions, and JWT expiry behaviour.
 
 ---
 
-## Gemini Quota Management
+## 🔐 Security
 
-The free tier allows 20 requests/day for Gemini 2.5 Flash. MIRROR X AI is optimised:
+| Control | Implementation |
+|:---|:---|
+| Password hashing | bcrypt, 12 rounds |
+| Authentication | JWT, 24-hour expiry |
+| Account lockout | 5 failed attempts → 15-minute cooldown |
+| File upload safety | MIME filtering (JPEG/PNG/WebP), 10 MB limit, UUID filenames |
+| Path traversal prevention | UUID-based upload filenames |
+| AI output safety | Ethical guardrails filter absolute claims; legal disclaimer on every response |
+| CORS | Configurable origin restriction for production |
 
-- **Analysis stage**: 1 call total (batch analysis of all patterns)
-- **Simulation**: 0 calls (heuristic engine, no Gemini)
-- **Scoring**: 0 calls (pure algorithm)
-- **Report**: 0 additional calls
-- **Chat**: 1 call per user message
+---
 
-**Maximum per investigation: 1–2 Gemini calls** (vs. the unoptimised 9+)
+## 💡 Gemini Quota Management
+
+The free tier allows **20 requests/day** for Gemini 2.5 Flash. MIRROR X AI is optimised to use the absolute minimum:
+
+| Stage | Gemini Calls |
+|:---|:---|
+| OCR | 0 (pytesseract) |
+| Rule Engine | 0 (heuristics) |
+| Gemini Analysis | **1** (batched, all patterns in one call) |
+| Simulation | 0 (persona engine, no LLM) |
+| Scoring | 0 (pure algorithm) |
+| Report | 0 (text generation, no LLM) |
+| Each chat message | **1** |
+
+**Maximum per investigation: 1–2 calls** (vs. the naïve 9+).
 
 When quota is exhausted, the system falls back to heuristic analysis and displays a clear message instead of crashing.
 
 ---
 
-## Security
+## 🌐 Deployment
 
-- Passwords hashed with bcrypt (12 rounds)
-- JWT authentication with 24-hour expiry
-- Account lockout after 5 failed login attempts (15-minute cooldown)
-- File uploads: MIME type filtering (JPEG/PNG/WebP only), 10 MB limit
-- UUID-based filenames prevent path traversal
-- All AI outputs filtered for absolute claims (no "is malicious", "is illegal")
-- Legal disclaimer injected on every AI response
+> Full step-by-step deployment guide: **[DEPLOYMENT.md](DEPLOYMENT.md)**
+
+The stack deploys entirely on the **free tier**:
+
+| Service | Platform | Cost |
+|:---|:---|:---|
+| Frontend | Vercel | Free |
+| Backend | Render | Free |
+| AI Service | Render | Free |
+| Database | Render PostgreSQL | Free |
+
+### Quick Env Reference
+
+**Frontend (Vercel)**
+```env
+VITE_API_URL=https://your-backend.onrender.com/api
+VITE_WS_URL=https://your-backend.onrender.com
+```
+
+**Backend (Render)**
+```env
+PORT=3001
+DATABASE_URL=postgresql://...render.com/mirror_x_ai
+JWT_SECRET=your-long-secret
+AI_SERVICE_URL=https://your-ai-service.onrender.com
+NODE_ENV=production
+```
+
+**AI Service (Render)**
+```env
+GEMINI_API_KEY=your-gemini-api-key
+PYTHON_VERSION=3.11.9
+```
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
+2. Create a feature branch — `git checkout -b feature/your-feature`
 3. Run tests for the service you're modifying
-4. Push to your branch and open a pull request
+4. Push and open a pull request
 
 ---
 
-## License
+## 📄 License
 
 MIT — see [LICENSE](LICENSE) for details.
 
@@ -421,6 +551,6 @@ MIT — see [LICENSE](LICENSE) for details.
 
 <div align="center">
 
-Built with the belief that users deserve to understand the interfaces that influence their decisions.
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:24243e,50:302b63,100:0f0c29&height=120&section=footer&text=Built+with+the+belief+that+users+deserve+to+understand+the+interfaces+that+influence+their+decisions.&fontSize=11&fontColor=aaaaaa&fontAlignY=65&animation=fadeIn" width="100%"/>
 
 </div>
