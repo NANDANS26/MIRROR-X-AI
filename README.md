@@ -167,23 +167,31 @@ User Input (screenshot / URL)
         ▼
 ┌─── Backend ──────────────────────────────────────────────────────┐
 │  1. Session created  →  sessionId returned immediately           │
-│  2. Pipeline runs in background                                  │
-│  3. WebSocket emits stage_progress at each step                  │
+│  2. Image uploaded to Cloudinary → persistent URL stored         │
+│  3. Pipeline runs in background                                  │
+│  4. WebSocket emits stage_progress at each step                  │
 └──────────────────────────────────────────────────────────────────┘
         │
-        ▼
-┌─── AI Service ───────────────────────────────────────────────────┐
-│  Stage 1: OCR          → pytesseract extracts text + bboxes      │
-│  Stage 2: Rule Engine  → 8-category pattern detection            │
-│  Stage 3: Gemini       → AI analysis + confidence scoring        │
-│  Stage 4: Simulation   → 4-persona behavioral impact             │
-│  Stage 5: Scoring      → Manipulation / Trust / Friction scores  │
-└──────────────────────────────────────────────────────────────────┘
+        ▼ (upload path)                    ▼ (URL path)
+┌─── AI Service ─────────────────────────────────────────────────────────────┐
+│  Stage 1: OCR              → Gemini Vision extracts text + word positions  │
+│           (URL path skips OCR — text is derived from scraped DOM/HTML)     │
+│  Stage 2: Rule Engine      → 8-category regex-based pattern detection      │
+│  Stage 3: Visual Heuristics→ 7 layout detectors (no Gemini): countdown     │
+│           timers, pre-checked checkboxes, price anchoring, scarcity,       │
+│           visual steering, dominant CTA, confirm-shame decline links        │
+│  Stage 4: Gemini Analysis  → 1 batch call → AI explanation of all flags    │
+│  Stage 5: Merge & Dedupe   → rule + visual patterns combined               │
+│  Stage 6: Simulation       → 4-persona behavioral impact (heuristic)       │
+│  Stage 7: Scoring          → Manipulation / Trust / Friction scores        │
+└────────────────────────────────────────────────────────────────────────────┘
         │
         ▼
 Results persisted → PostgreSQL
 WebSocket: session_complete → Frontend fetches + renders narrative
 ```
+
+> **URL scraping** uses **axios + cheerio** (HTTP fetch + DOM parser). No browser is required — this works on Render free tier without Chromium.
 
 ---
 
@@ -201,6 +209,9 @@ WebSocket: session_complete → Frontend fetches + renders narrative
 | 🛒 **Sneak Into Basket** | Items auto-added without explicit user consent |
 | 🎭 **Misdirection** | Deceptive button placement, confusing action labels |
 | 💸 **Hidden Costs** | Fees revealed only at the final checkout step |
+| ⚓ **Price Anchoring** | Inflated "original" prices alongside discounts to create false value |
+
+> The visual heuristics engine also detects **countdown timers**, **pre-selected checkboxes**, **scarcity messaging**, and **dominant CTA / shame decline link pairings** through layout analysis — no Gemini call required for these.
 
 </div>
 
@@ -213,9 +224,10 @@ WebSocket: session_complete → Frontend fetches + renders narrative
 | Layer | Technologies |
 |:---|:---|
 | **Frontend** | React 18, TypeScript, Vite 8, Tailwind CSS v4, Three.js, React Three Fiber, Framer Motion, GSAP, Lenis, Zustand, Socket.io-client |
-| **Backend** | Node.js, Express.js, TypeScript, Prisma ORM, Socket.io, Puppeteer, JWT, bcrypt, Multer |
-| **AI Service** | Python 3.11+, FastAPI, pytesseract, Pillow, Google Gemini 2.5 Flash, Hypothesis |
+| **Backend** | Node.js, Express.js, TypeScript, Prisma ORM, Socket.io, PDFKit, axios + cheerio (URL scraping), JWT, bcrypt, Multer (memory storage), Cloudinary SDK |
+| **AI Service** | Python 3.11+, FastAPI, Gemini Vision API (OCR), Gemini 2.5 Flash (analysis + chat), reportlab (PDF), Hypothesis |
 | **Database** | PostgreSQL 15 |
+| **Image Storage** | Cloudinary (persistent image URLs, memory-buffer uploads) |
 | **Testing** | Jest + ts-jest + fast-check (backend) • pytest + Hypothesis PBT (AI service) |
 | **Deployment** | Vercel (frontend) • Render (backend + AI + DB) |
 
@@ -246,7 +258,8 @@ mirror-x-ai/
 ├── backend/                     # Node.js + Express API
 │   └── src/
 │       ├── controllers/         # auth, analysis, chat, report
-│       ├── services/            # pipelineOrchestrator, scraperService
+│       ├── services/            # pipelineOrchestrator, scraperService (axios+cheerio), aiService, cloudinaryService, reportService, chatService
+│       ├── configs/             # env.ts (validated env vars)
 │       ├── database/            # Prisma client, sessionRepository
 │       ├── middleware/          # auth (JWT), upload (Multer), error
 │       └── routes/              # auth, analysis, chat, report, health
@@ -254,7 +267,7 @@ mirror-x-ai/
 ├── ai/                          # Python FastAPI microservice
 │   └── app/
 │       ├── api/                 # analyze, simulate, score, chat, report
-│       ├── analyzers/           # ocr_engine, rule_engine, visual_heuristics
+│       ├── analyzers/           # ocr_engine (Gemini Vision), rule_engine (8 categories), visual_heuristics (7 detectors)
 │       ├── simulation/          # simulation_engine (4 personas)
 │       ├── scoring/             # scoring_engine
 │       ├── reports/             # report_generator (structured text output)
@@ -273,11 +286,10 @@ mirror-x-ai/
 | Node.js | ≥ 18 | Backend + Frontend |
 | Python | 3.11+ | AI service (venv strongly recommended) |
 | PostgreSQL | 15 | Local instance on port 5432 |
-| Tesseract OCR | 5.x | Required for screenshot text extraction |
-| Google Gemini API Key | — | Free tier: 20 requests/day |
+| Google Gemini API Key | — | Used for both OCR (Vision) and analysis; free tier: ~10 RPM |
+| Cloudinary Account | — | Free tier for image storage (CLOUD_NAME, API_KEY, API_SECRET) |
 
-**Install Tesseract on Windows:**
-Download from [UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) and add to PATH.
+> **No Tesseract required.** OCR is handled entirely by Gemini Vision API — no system binary install needed.
 
 ---
 
@@ -326,6 +338,9 @@ PORT=3001
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mirror_x_ai"
 JWT_SECRET=your-secret-key-here-minimum-32-chars
 AI_SERVICE_URL=http://localhost:8000
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 ### 4 — AI Service
@@ -415,8 +430,8 @@ Ask anything in natural language:
 | GET | `/api/analysis/:sessionId` | JWT | Fetch full session results |
 | GET | `/api/analysis/history` | JWT | List past 100 sessions |
 | DELETE | `/api/analysis/:sessionId` | JWT | Delete session |
-| GET | `/api/report/:sessionId` | JWT | Get structured text report for session |
-| POST | `/api/chat/:sessionId` | JWT | Chat with full session context |
+| GET | `/api/report/:sessionId` | JWT | Generate + stream PDF binary (PDFKit) |
+| POST | `/api/chat/:id` | JWT | Chat with full session context |
 | GET | `/api/health` | — | Health check |
 | GET | `/api/health/db` | — | Database connectivity check |
 
@@ -469,8 +484,8 @@ Property-based tests cover: scoring invariants, output filter guarantees, OCR co
 | Password hashing | bcrypt, 12 rounds |
 | Authentication | JWT, 24-hour expiry |
 | Account lockout | 5 failed attempts → 15-minute cooldown |
-| File upload safety | MIME filtering (JPEG/PNG/WebP), 10 MB limit, UUID filenames |
-| Path traversal prevention | UUID-based upload filenames |
+| File upload safety | MIME filtering (JPEG/PNG/WebP), 10 MB limit, Multer memory storage (no disk writes) |
+| Image persistence | Cloudinary — UUID-based public IDs prevent path traversal |
 | AI output safety | Ethical guardrails filter absolute claims; legal disclaimer on every response |
 | CORS | Configurable origin restriction for production |
 
@@ -482,15 +497,17 @@ The free tier allows **20 requests/day** for Gemini 2.5 Flash. MIRROR X AI is op
 
 | Stage | Gemini Calls |
 |:---|:---|
-| OCR | 0 (pytesseract) |
-| Rule Engine | 0 (heuristics) |
+| OCR (upload) | **1** (Gemini Vision — extracts text from screenshot) |
+| OCR (URL) | 0 (text derived from scraped DOM, no Vision call) |
+| Rule Engine | 0 (regex heuristics) |
+| Visual Heuristics | 0 (pure OCR text analysis, no LLM) |
 | Gemini Analysis | **1** (batched, all patterns in one call) |
-| Simulation | 0 (persona engine, no LLM) |
+| Simulation | 0 (heuristic persona engine, no LLM) |
 | Scoring | 0 (pure algorithm) |
 | Report | 0 (text generation, no LLM) |
 | Each chat message | **1** |
 
-**Maximum per investigation: 1–2 calls** (vs. the naïve 9+).
+**Maximum per upload investigation: 2 calls.** Maximum per URL investigation: 1 call.
 
 When quota is exhausted, the system falls back to heuristic analysis and displays a clear message instead of crashing.
 
@@ -524,6 +541,9 @@ DATABASE_URL=postgresql://...render.com/mirror_x_ai
 JWT_SECRET=your-long-secret
 AI_SERVICE_URL=https://your-ai-service.onrender.com
 NODE_ENV=production
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 **AI Service (Render)**
